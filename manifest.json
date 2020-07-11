@@ -1,12 +1,22 @@
 {
 	"manifest_version": 2,
 	"name": "Heliotropium",
-	"version": "0.1.0",
-	"description": "See the time in your local time.",
+	"version": "0.2.0",
+	"description": "Check out the date of the page",
+	"icons": {
+		"48": "icon.png",
+		"96": "icon.png"
+	},
+	"background": {
+		"scripts": [ "heliotropium_background.js" ]
+	},
 	"content_scripts": [
 		{
-			"matches": ["<all_urls>"],
-			"js": ["heliotropium_content.js"]
+			"matches": [ "<all_urls>" ],
+			"js": [ "heliotropium_content.js" ]
 		}
-	]
+	],
+	"browser_action":{
+		"default_title": ""
+	}
 }

@@ -1,36 +1,42 @@
 'use strict';
 
-class HeliotropiumContent {
-	constructor() {
-		this.init();
-	}
+function init() {
+	addListeners();
 
-	init() {
-		const timeElement = document.querySelector(`time[datetime]`);
-		if (!timeElement) {
-			console.log(`heliotropium: no time element found.`);
-		} else {
-			console.log(
-				`heliotropium: original datetime is "${timeElement.dateTime}"`,
-			);
-			const originalDate = new Date(timeElement.dateTime);
-			const formattedDate = this.formatDate(originalDate);
-
-			timeElement.textContent = formattedDate;
-			timeElement.style.backgroundColor = `hsl(60 100% 94% / 50%)`;
-		}
-	}
-
-	formatDate(dateObj) {
-		const YYYY = dateObj.getFullYear();
-		const MM = (dateObj.getMonth() + 1 + ``).padStart(2, `0`);
-		const DD = (dateObj.getDate() + ``).padStart(2, `0`);
-		const h = dateObj.getHours();
-		const mm = (dateObj.getMinutes() + ``).padStart(2, `0`);
-
-		const formattedString = `${YYYY}-${MM}-${DD} ${h}:${mm}`;
-		return formattedString;
-	}
+	grabDate();
 }
 
-new HeliotropiumContent();
+function addListeners() {
+	chrome.runtime.onMessage.addListener(handleMessage);
+}
+
+function handleMessage(message) {
+	console.log(`heliotropium: got a message`, message);
+
+	let date = ``;
+	let status = `NG`;
+	if (message.action === `get-date`) {
+		date = grabDate();
+		if (date !== ``) {
+			status = `OK`;
+		}
+	}
+	const response = { type: `content-date`, status, date };
+	console.log(`heliotropium: sending back a response`, response);
+	chrome.runtime.sendMessage(response);
+}
+
+function grabDate() {
+	let date = ``;
+	const timeElement = document.querySelector(`time[datetime]`);
+	if (!timeElement) {
+		console.log(`heliotropium: <time> not found.`);
+	}
+	else {
+		console.log(`heliotropium: datetime is "${timeElement.dateTime}"`);
+		date = timeElement.dateTime;
+	}
+	return date;
+}
+
+init();
