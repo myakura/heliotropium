@@ -27,10 +27,10 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 	console.log(message);
 	let iconPath = `icons/icon-gray.png`;
 	let browserActionStatus = `disable`;
+	let badgeText = ``;
+	let title = ``;
 	if (message.type === `content-date`) {
 		const { status, date } = message;
-		let badgeText = ``;
-		let title = ``;
 		if (status === `OK`) {
 			iconPath = `icons/icon-black.png`;
 			browserActionStatus = `enable`;
@@ -38,9 +38,9 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 			badgeText = `${month}${day}`;
 			title = `${year}-${month}-${day}`;
 		}
-		chrome.browserAction[browserActionStatus](tabId);
-		chrome.browserAction.setIcon({ tabId, path: iconPath });
-		chrome.browserAction.setBadgeText({ tabId, text: badgeText });
-		chrome.browserAction.setTitle({ tabId, title });
 	}
+	chrome.browserAction[browserActionStatus](tabId);
+	chrome.browserAction.setIcon({ tabId, path: iconPath });
+	chrome.browserAction.setBadgeText({ tabId, text: badgeText });
+	chrome.browserAction.setTitle({ tabId, title });
 });
