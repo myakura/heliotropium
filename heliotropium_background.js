@@ -25,18 +25,22 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 	const tabUrl = sender.tab.url;
 	console.log(`got a message from tab`, tabId, { tabTitle, tabUrl });
 	console.log(message);
+	let iconPath = ``;
 	if (message.type === `content-date`) {
 		const { status, date } = message;
 		let badgeText = ``;
 		let title = ``;
 		if (status === `OK`) {
+			iconPath = `icons/icon-black.png`;
 			chrome.browserAction.enable(tabId);
 			const { year, month, day } = parseDate(date);
 			badgeText = `${month}${day}`;
 			title = `${year}-${month}-${day}`;
 		} else {
+			iconPath = `icons/icon-gray.png`;
 			chrome.browserAction.disable(tabId);
 		}
+		chrome.browserAction.setIcon({ tabId, path: iconPath });
 		chrome.browserAction.setBadgeText({ tabId, text: badgeText });
 		chrome.browserAction.setTitle({ tabId, title });
 	}
