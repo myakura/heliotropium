@@ -20,11 +20,12 @@ chrome.tabs.onUpdated.addListener((tabId) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
-	console.log(`got a message`);
+	const tabId = sender.tab.id;
+	const tabTitle = sender.tab.title;
+	const tabUrl = sender.tab.url;
+	console.log(`got a message from tab`, tabId, { tabTitle, tabUrl });
 	console.log(message);
-	console.log(sender);
 	if (message.type === `content-date`) {
-		const tabId = sender.tab.id;
 		const { status, date } = message;
 		let badgeText = ``;
 		let title = ``;
@@ -33,8 +34,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 			const { year, month, day } = parseDate(date);
 			badgeText = `${month}${day}`;
 			title = `${year}-${month}-${day}`;
-		}
-		else {
+		} else {
 			chrome.browserAction.disable(tabId);
 		}
 		chrome.browserAction.setBadgeText({ tabId, text: badgeText });
