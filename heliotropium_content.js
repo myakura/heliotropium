@@ -14,14 +14,10 @@ function handleMessage(message) {
 	console.log(`heliotropium: got a message`, message);
 
 	let date = ``;
-	let status = `NG`;
 	if (message.action === `get-date`) {
 		date = grabDate();
-		if (date !== ``) {
-			status = `OK`;
-		}
 	}
-	const response = { type: `content-date`, status, date };
+	const response = { type: `content-date`, date };
 	console.log(`heliotropium: sending back a response`, response);
 	chrome.runtime.sendMessage(response);
 }

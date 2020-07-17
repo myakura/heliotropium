@@ -32,8 +32,8 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 	let title = ``;
 
 	if (message.type === `content-date`) {
-		const { status, date } = message;
-		if (status === `OK`) {
+		const { date } = message;
+		if (date) {
 			const { year, month, day } = parseDate(date);
 			browserActionStatus = `enable`;
 			iconPath = `icons/icon-black.png`;
