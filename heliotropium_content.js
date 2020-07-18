@@ -38,8 +38,12 @@ function grabDateValueFromJsonLd() {
 		...document.querySelectorAll(`script[type="application/ld+json"]`),
 	];
 	const jsonLdDates = jsonLdScripts.filter((script) => {
-		const data = JSON.parse(script.textContent);
-		return `datePublished` in data;
+		try {
+			const data = JSON.parse(script.textContent);
+			return `datePublished` in data;
+		} catch (error) {
+			return false;
+		}
 	});
 	if (!jsonLdDates.length) {
 		console.log(`heliotropium: JSON-LD "datePublished" not found.`);
