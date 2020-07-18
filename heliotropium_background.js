@@ -1,7 +1,11 @@
 function parseDate(date) {
-	const re = /^(?<year>\d{4})[-\/\.](?<month>\d{2})[-\/\.](?<day>\d{2})/;
+	const re = /^(?<year>\d{4})[-\/\.](?<month>\d{1,2})[-\/\.](?<day>\d{1,2})/;
 	const { year, month, day } = re.exec(date).groups;
-	return { year, month, day };
+	return {
+		year,
+		month: month.padStart(2, `0`),
+		day: day.padStart(2, `0`),
+	};
 }
 
 function askDate(tabId) {
