@@ -71,7 +71,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 			badgeText = `${month}${day}`;
 			title = `${year}-${month}-${day}`;
 		} else {
-			console.error(`either date is unavailable or invalid`, date);
+			console.log(`date unavailable or unsupported format`, date);
 		}
 	}
 
