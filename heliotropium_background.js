@@ -1,7 +1,7 @@
 'use strict';
 
 function parseDate(date) {
-	const re = /^(?<year>\d{4})[-\/\.](?<month>\d{1,2})[-\/\.](?<day>\d{1,2})/;
+	const re = /(?<year>\d{4})[-\/\.](?<month>\d{1,2})[-\/\.](?<day>\d{1,2})/;
 	const { year, month, day } = re.exec(date).groups;
 	return {
 		year,
@@ -11,7 +11,7 @@ function parseDate(date) {
 }
 
 function checkDate(string) {
-	const re = /^\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/;
+	const re = /\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/;
 	return re.test(string);
 }
 
