@@ -8,16 +8,24 @@
 		"96": "icons/icon-black.png"
 	},
 	"background": {
-		"scripts": [ "heliotropium_background.js" ]
+		"scripts": [
+			"heliotropium_background.js"
+		]
 	},
 	"content_scripts": [
 		{
-			"matches": [ "<all_urls>" ],
-			"js": [ "heliotropium_content.js" ]
+			"matches": [
+				"<all_urls>"
+			],
+			"js": [
+				"heliotropium_content.js"
+			]
 		}
 	],
-	"browser_action":{
+	"browser_action": {
 		"default_icon": "icons/icon-gray.png"
 	},
-	"permissions": ["tabs"]
+	"permissions": [
+		"tabs"
+	]
 }
