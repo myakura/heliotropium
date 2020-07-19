@@ -29,18 +29,23 @@ function getTabInfo(tabId) {
 	});
 }
 
+async function isTabReadyAndWebby(tabId) {
+	const { url, status } = await getTabInfo(tabId);
+	return url.startsWith(`http`) && status === `complete`;
+}
+
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 	console.log(`tab activated`, tabId);
-	const { url, status } = await getTabInfo(tabId);
-	if (url.startsWith(`http`) && status === `complete`) {
+	const ok = await isTabReadyAndWebby(tabId);
+	if (ok) {
 		askDate(tabId);
 	}
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId) => {
 	console.log(`tab updated`, tabId);
-	const { url, status } = await getTabInfo(tabId);
-	if (url.startsWith(`http`) && status === `complete`) {
+	const ok = await isTabReadyAndWebby(tabId);
+	if (ok) {
 		askDate(tabId);
 	}
 });
