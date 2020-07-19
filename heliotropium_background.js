@@ -53,9 +53,7 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
-	const tabId = sender.tab.id;
-	const tabTitle = sender.tab.title;
-	const tabUrl = sender.tab.url;
+	const { id: tabId, title: tabTitle, url: tabUrl } = sender.tab;
 	console.log(`got a message from tab`, tabId, { tabTitle, tabUrl });
 	console.log(message);
 
