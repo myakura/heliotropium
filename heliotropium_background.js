@@ -36,6 +36,45 @@ async function isTabReadyAndWebby(tabId) {
 	return url.startsWith(`http`) && status === `complete`;
 }
 
+function updateBrowserAction({
+	tabId,
+	enabled = false,
+	badgeText = ``,
+	title = ``,
+}) {
+	const method = enabled ? `enable` : `disable`;
+	const iconPath = enabled ? `icons/icon-black.png` : `icons/icon-gray.png`;
+
+	chrome.browserAction[method](tabId);
+	chrome.browserAction.setIcon({ tabId, path: iconPath });
+	chrome.browserAction.setBadgeText({ tabId, text: badgeText });
+	chrome.browserAction.setTitle({ tabId, title });
+}
+
+function handleMessage(tabId, message) {
+	let enabled = false;
+	let badgeText = ``;
+	let title = ``;
+
+	const { type, date } = message;
+	if (!type) {
+		console.log(`no message.`);
+	}
+	if (!date) {
+		console.log(`date unavailable.`);
+	}
+
+	if (!checkDate(date)) {
+		console.log(`malformed date.`);
+	} else {
+		enabled = true;
+		const { year, month, day } = parseDate(date);
+		badgeText = `${month}${day}`;
+		title = `${year}-${month}-${day}`;
+	}
+	updateBrowserAction({ tabId, enabled, badgeText, title });
+}
+
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 	console.log(`tab activated`, tabId);
 	const ok = await isTabReadyAndWebby(tabId);
@@ -56,27 +95,5 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 	const { id: tabId, title: tabTitle, url: tabUrl } = sender.tab;
 	console.log(`got a message from tab`, tabId, { tabTitle, tabUrl });
 	console.log(message);
-
-	let browserActionStatus = `disable`;
-	let iconPath = `icons/icon-gray.png`;
-	let badgeText = ``;
-	let title = ``;
-
-	if (message.type === `content-date`) {
-		const { date } = message;
-		if (date && checkDate(date)) {
-			const { year, month, day } = parseDate(date);
-			browserActionStatus = `enable`;
-			iconPath = `icons/icon-black.png`;
-			badgeText = `${month}${day}`;
-			title = `${year}-${month}-${day}`;
-		} else {
-			console.log(`date unavailable or unsupported format`, date);
-		}
-	}
-
-	chrome.browserAction[browserActionStatus](tabId);
-	chrome.browserAction.setIcon({ tabId, path: iconPath });
-	chrome.browserAction.setBadgeText({ tabId, text: badgeText });
-	chrome.browserAction.setTitle({ tabId, title });
+	handleMessage(tabId, message);
 });
