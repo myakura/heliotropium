@@ -8,6 +8,11 @@ function parseDate(date) {
 	};
 }
 
+function checkDate(string) {
+	const re = /^\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/;
+	return re.test(string);
+}
+
 function askDate(tabId) {
 	const message = { action: `get-date` };
 	chrome.tabs.sendMessage(tabId, message);
@@ -37,12 +42,14 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 
 	if (message.type === `content-date`) {
 		const { date } = message;
-		if (date) {
+		if (date && checkDate(date)) {
 			const { year, month, day } = parseDate(date);
 			browserActionStatus = `enable`;
 			iconPath = `icons/icon-black.png`;
 			badgeText = `${month}${day}`;
 			title = `${year}-${month}-${day}`;
+		} else {
+			console.error(`either date is unavailable or invalid`, date);
 		}
 	}
 
