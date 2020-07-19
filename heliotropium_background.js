@@ -1,3 +1,5 @@
+'use strict';
+
 function parseDate(date) {
 	const re = /^(?<year>\d{4})[-\/\.](?<month>\d{1,2})[-\/\.](?<day>\d{1,2})/;
 	const { year, month, day } = re.exec(date).groups;
