@@ -18,14 +18,31 @@ function askDate(tabId) {
 	chrome.tabs.sendMessage(tabId, message);
 }
 
-chrome.tabs.onActivated.addListener(({ tabId }) => {
+function getTabInfo(tabId) {
+	return new Promise((resolve, reject) => {
+		chrome.tabs.get(tabId, (tab) => {
+			if (chrome.runtime.lastError) {
+				reject(chrome.runtime.lastError);
+			}
+			resolve(tab);
+		});
+	});
+}
+
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 	console.log(`tab activated`, tabId);
-	askDate(tabId);
+	const { url, status } = await getTabInfo(tabId);
+	if (url.startsWith(`http`) && status === `complete`) {
+		askDate(tabId);
+	}
 });
 
-chrome.tabs.onUpdated.addListener((tabId) => {
+chrome.tabs.onUpdated.addListener(async (tabId) => {
 	console.log(`tab updated`, tabId);
-	askDate(tabId);
+	const { url, status } = await getTabInfo(tabId);
+	if (url.startsWith(`http`) && status === `complete`) {
+		askDate(tabId);
+	}
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
