@@ -52,9 +52,9 @@ function updateBrowserAction({
 }
 
 function handleMessage(tabId, message) {
-	let enabled = false;
-	let badgeText = ``;
-	let title = ``;
+	let baEnabled = false;
+	let baBadgeText = ``;
+	let baTitle = ``;
 
 	const { type, date } = message;
 	if (!type) {
@@ -67,12 +67,17 @@ function handleMessage(tabId, message) {
 	if (!checkDate(date)) {
 		console.log(`malformed date.`);
 	} else {
-		enabled = true;
+		baEnabled = true;
 		const { year, month, day } = parseDate(date);
-		badgeText = `${month}${day}`;
-		title = `${year}-${month}-${day}`;
+		baBadgeText = `${month}${day}`;
+		baTitle = `${year}-${month}-${day}`;
 	}
-	updateBrowserAction({ tabId, enabled, badgeText, title });
+	updateBrowserAction({
+		tabId,
+		enabled: baEnabled,
+		badgeText: baBadgeText,
+		title: baTitle,
+	});
 }
 
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
