@@ -33,8 +33,8 @@ function getTabInfo(tabId) {
 }
 
 async function isTabReadyAndWebby(tabId) {
-	const { url, status } = await getTabInfo(tabId);
-	return url.startsWith(`http`) && status === `complete`;
+	const { active, url, status } = await getTabInfo(tabId);
+	return active && url.startsWith(`http`) && status === `complete`;
 }
 
 function updateBrowserAction({
