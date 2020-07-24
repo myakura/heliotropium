@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Heliotropium",
-	"version": "0.6.0",
+	"version": "0.6.1",
 	"description": "Check out the date of the page",
 	"icons": {
 		"48": "icons/icon-black.png",
@@ -17,6 +17,26 @@
 		{
 			"matches": [
 				"<all_urls>"
+			],
+			"exclude_matches": [
+				"https://www.google.com/search*",
+				"https://www.amazon.com/*",
+				"https://www.amazon.co.jp/*",
+				"https://www.facebook.com/*",
+				"https://twitter.com/*",
+				"https://youtube.com/*"
+			],
+			"exclude_globs": [
+				"*.js",
+				"*.css",
+				"*.txt",
+				"*.png",
+				"*.jpg",
+				"*.jpeg",
+				"*.webp",
+				"*.mp4",
+				"*.webm",
+				"*.pdf"
 			],
 			"js": [
 				"heliotropium_content.js"
