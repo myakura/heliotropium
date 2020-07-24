@@ -93,7 +93,11 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 
 chrome.runtime.onMessage.addListener((message, sender) => {
 	const { id: tabId, title: tabTitle, url: tabUrl } = sender.tab;
-	console.log(`got a message from tab`, tabId, { tabTitle, tabUrl });
-	console.log(message);
+	console.group(`got a message from tab`, tabId);
+	console.log(`title:`, tabTitle);
+	console.log(`url:`, tabUrl);
+	console.log(`message:`, message);
+	console.groupEnd();
+
 	handleMessage(tabId, message);
 });
