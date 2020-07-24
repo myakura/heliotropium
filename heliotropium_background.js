@@ -79,6 +79,7 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 	console.log(`tab activated`, tabId);
 	const ok = await isTabReadyAndWebby(tabId);
 	if (ok) {
+		console.log(`tab`, tabId, `is ready. asking date...`);
 		askDate(tabId);
 	}
 });
@@ -87,6 +88,7 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 	console.log(`tab updated`, tabId);
 	const ok = await isTabReadyAndWebby(tabId);
 	if (ok) {
+		console.log(`tab`, tabId, `is ready. asking date...`);
 		askDate(tabId);
 	}
 });
