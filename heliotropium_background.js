@@ -20,21 +20,23 @@ function askDate(tabId) {
 	chrome.tabs.sendMessage(tabId, message);
 }
 
-function getTabInfo(tabId) {
-	return new Promise((resolve, reject) => {
-		chrome.tabs.get(tabId, (tab) => {
-			if (chrome.runtime.lastError) {
-				reject(chrome.runtime.lastError);
-			}
+function getTabInfo(tabId, callback) {
+	chrome.tabs.get(tabId, (tab) => {
+		if (chrome.runtime.lastError) {
+			console.error(chrome.runtime.lastError);
+		} else {
 			console.log(`about tab`, tab.id, tab);
-			resolve(tab);
-		});
+			callback(tab);
+		}
 	});
 }
 
-async function isTabReadyAndWebby(tabId) {
-	const { active, url, status } = await getTabInfo(tabId);
-	return active && url.startsWith(`http`) && status === `complete`;
+function isTabReadyAndWebby(tab, callback) {
+	const { id: tabId, active, url, status } = tab;
+	if (active && url.startsWith(`http`) && status === `complete`) {
+		console.log(`tab`, tabId, `is ready. asking date...`);
+		callback(tabId);
+	}
 }
 
 function updateBrowserAction({
@@ -76,22 +78,24 @@ function handleMessage(tabId, message) {
 	});
 }
 
-chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+chrome.tabs.onActivated.addListener(({ tabId }) => {
 	console.log(`tab activated`, tabId);
-	const ok = await isTabReadyAndWebby(tabId);
-	if (ok) {
-		console.log(`tab`, tabId, `is ready. asking date...`);
-		askDate(tabId);
-	}
+	getTabInfo(tabId, (tab) => {
+		isTabReadyAndWebby(tab, (tabId) => {
+			console.log(`tab`, tabId, `is ready. asking date...`);
+			askDate(tabId);
+		});
+	});
 });
 
-chrome.tabs.onUpdated.addListener(async (tabId) => {
+chrome.tabs.onUpdated.addListener((tabId) => {
 	console.log(`tab updated`, tabId);
-	const ok = await isTabReadyAndWebby(tabId);
-	if (ok) {
-		console.log(`tab`, tabId, `is ready. asking date...`);
-		askDate(tabId);
-	}
+	getTabInfo(tabId, (tab) => {
+		isTabReadyAndWebby(tab, (tabId) => {
+			console.log(`tab`, tabId, `is ready. asking date...`);
+			askDate(tabId);
+		});
+	});
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
