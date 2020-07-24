@@ -26,6 +26,7 @@ function getTabInfo(tabId) {
 			if (chrome.runtime.lastError) {
 				reject(chrome.runtime.lastError);
 			}
+			console.log(`about tab`, tab.id, tab);
 			resolve(tab);
 		});
 	});
