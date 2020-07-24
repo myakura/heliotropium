@@ -56,16 +56,11 @@ function handleMessage(tabId, message) {
 	let baBadgeText = ``;
 	let baTitle = ``;
 
-	const { type, date } = message;
-	if (!type) {
-		console.log(`no message.`);
-	}
+	const { date } = message;
 	if (!date) {
 		console.log(`date unavailable.`);
-	}
-
-	if (!checkDate(date)) {
-		console.log(`malformed date.`);
+	} else if (!checkDate(date)) {
+		console.log(`malformed date.`, date);
 	} else {
 		baEnabled = true;
 		const { year, month, day } = parseDate(date);

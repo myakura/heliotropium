@@ -10,12 +10,15 @@ function addListeners() {
 
 function handleMessage(message) {
 	console.log(`heliotropium: got a message`, message);
-
-	let date = ``;
-	if (message.action === `get-date`) {
-		date = grabDate();
+	if (!message) {
+		console.log(`heliotrpium: message is empty.`);
+		return;
 	}
-	const response = { type: `content-date`, date };
+
+	let response = {};
+	if (message?.action === `get-date`) {
+		response.date = grabDate();
+	}
 	console.log(`heliotropium: sending back a response`, response);
 	chrome.runtime.sendMessage(response);
 }
