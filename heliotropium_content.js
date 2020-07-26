@@ -14,7 +14,7 @@ function checkDate(string) {
 }
 
 function handleMessage(message) {
-	console.log(`heliotropium: got a message`, message);
+	console.log(`heliotropium: got a message.`, message);
 	if (!message) {
 		console.log(`heliotrpium: message is empty.`);
 		return;
@@ -24,7 +24,7 @@ function handleMessage(message) {
 	if (message?.action === `get-date`) {
 		response.date = grabDate();
 	}
-	console.log(`heliotropium: sending back a response`, response);
+	console.log(`heliotropium: sending back a response.`, response);
 	chrome.runtime.sendMessage(response);
 }
 
@@ -89,7 +89,7 @@ function generateGrabDateFromMetatag() {
         return date;
       }
       date = metaElement.content;
-      console.log(`heliotropium: <meta ${attr}> found`, date);
+      console.log(`heliotropium: <meta ${attr}> found.`, date);
       return date;
     }
   });
