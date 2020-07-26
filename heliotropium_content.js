@@ -55,7 +55,7 @@ function grabDateFromTimeElement() {
 	return date;
 }
 
-function grabDateValueFromJsonLd() {
+function grabDateFromJsonLd() {
 	let date = ``;
 	const jsonLdScripts = [
 		...document.querySelectorAll(`script[type="application/ld+json"]`),
@@ -83,7 +83,7 @@ function grabDateValueFromJsonLd() {
 
 function grabDate() {
 	const methods = [
-		grabDateValueFromJsonLd,
+		grabDateFromJsonLd,
 		grabDateFromRelativeTimeElement,
 		grabDateFromTimeElement,
 	];
