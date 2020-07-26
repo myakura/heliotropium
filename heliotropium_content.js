@@ -8,6 +8,11 @@ function addListeners() {
 	chrome.runtime.onMessage.addListener(handleMessage);
 }
 
+function checkDate(string) {
+	const re = /\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/;
+	return re.test(string);
+}
+
 function handleMessage(message) {
 	console.log(`heliotropium: got a message`, message);
 	if (!message) {
@@ -77,16 +82,17 @@ function grabDateValueFromJsonLd() {
 }
 
 function grabDate() {
+	const methods = [
+		grabDateValueFromJsonLd,
+		grabDateFromRelativeTimeElement,
+		grabDateFromTimeElement,
+	];
 	let date = ``;
-	if (document.querySelector(`script[type="application/ld+json"]`)) {
-		date = grabDateValueFromJsonLd();
-		return date;
-	} else if (document.querySelector(`relative-time`)) {
-		date = grabDateFromRelativeTimeElement();
-		return date;
-	} else if (document.querySelector(`time[datetime]`)) {
-		date = grabDateFromTimeElement();
-		return date;
+	for (const method of methods) {
+		date = method();
+		if (checkDate(date)) {
+			break;
+		}
 	}
 	return date;
 }
