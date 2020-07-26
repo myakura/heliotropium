@@ -32,14 +32,10 @@ function grabDateFromRelativeTimeElement() {
 	let date = ``;
 	const relativeTimeElement = document.querySelector(`relative-time`);
 	if (!relativeTimeElement) {
-		console.log(`heliotropium: <relative-time> not found.`);
-	} else {
-		console.log(
-			`heliotropium: <relative-time> found.`,
-			relativeTimeElement.getAttribute(`datetime`),
-		);
-		date = relativeTimeElement.getAttribute(`datetime`);
+		return date;
 	}
+	date = relativeTimeElement.getAttribute(`datetime`);
+	console.log(`heliotropium: <relative-time> found.`, date);
 	return date;
 }
 
@@ -47,11 +43,10 @@ function grabDateFromTimeElement() {
 	let date = ``;
 	const timeElement = document.querySelector(`time[datetime]`);
 	if (!timeElement) {
-		console.log(`heliotropium: <time> not found.`);
-	} else {
-		console.log(`heliotropium: <time> found.`, timeElement.dateTime);
-		date = timeElement.dateTime;
+		return date;
 	}
+	date = timeElement.dateTime;
+	console.log(`heliotropium: <time> found.`, date);
 	return date;
 }
 
@@ -60,6 +55,9 @@ function grabDateFromJsonLd() {
 	const jsonLdScripts = [
 		...document.querySelectorAll(`script[type="application/ld+json"]`),
 	];
+	if (jsonLdScripts.length === 0) {
+		return date;
+	}
 	const jsonLdDates = jsonLdScripts.filter((script) => {
 		try {
 			const data = JSON.parse(script.textContent);
@@ -68,15 +66,10 @@ function grabDateFromJsonLd() {
 			return false;
 		}
 	});
-	if (!jsonLdDates.length) {
-		console.log(`heliotropium: JSON-LD "datePublished" not found.`);
-	} else {
+	if (jsonLdDates.length > 0) {
 		const data = JSON.parse(jsonLdDates[0].textContent);
-		console.log(
-			`heliotropium: JSON-LD "datePublished" found.`,
-			data.datePublished,
-		);
 		date = data.datePublished;
+		console.log(`heliotropium: JSON-LD "datePublished" found.`, date);
 	}
 	return date;
 }
