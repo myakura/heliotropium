@@ -74,9 +74,32 @@ function grabDateFromJsonLd() {
 	return date;
 }
 
+function generateGrabDateFromMetatag() {
+  const attributes = [
+    `property="article:published_time"`,
+    `name="pubdate"`,
+    `name="date"`,
+  ];
+  const metatagFunctions = attributes.map((attr) => {
+    const selector = `meta[${attr}][content]`;
+    return function () {
+      let date = ``;
+      const metaElement = document.querySelector(selector);
+      if (!metaElement) {
+        return date;
+      }
+      date = metaElement.content;
+      console.log(`heliotropium: <meta ${attr}> found`, date);
+      return date;
+    }
+  });
+  return metatagFunctions;
+}
+
 function grabDate() {
 	const methods = [
 		grabDateFromJsonLd,
+		...generateGrabDateFromMetatag(),
 		grabDateFromRelativeTimeElement,
 		grabDateFromTimeElement,
 	];
