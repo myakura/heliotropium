@@ -30,7 +30,7 @@ function handleMessage(message) {
 
 function grabDateFromRelativeTimeElement() {
 	let date = ``;
-	const relativeTimeElement = document.querySelector(`relative-time`);
+	const relativeTimeElement = document.querySelector(`relative-time[datetime]`);
 	if (!relativeTimeElement) {
 		return date;
 	}
@@ -75,25 +75,25 @@ function grabDateFromJsonLd() {
 }
 
 function generateGrabDateFromMetatag() {
-  const attributes = [
-    `property="article:published_time"`,
-    `name="pubdate"`,
-    `name="date"`,
-  ];
-  const metatagFunctions = attributes.map((attr) => {
-    const selector = `meta[${attr}][content]`;
-    return function () {
-      let date = ``;
-      const metaElement = document.querySelector(selector);
-      if (!metaElement) {
-        return date;
-      }
-      date = metaElement.content;
-      console.log(`heliotropium: <meta ${attr}> found.`, date);
-      return date;
-    }
-  });
-  return metatagFunctions;
+	const attributes = [
+		`property="article:published_time"`,
+		`name="pubdate"`,
+		`name="date"`,
+	];
+	const metatagFunctions = attributes.map((attr) => {
+		const selector = `meta[${attr}][content]`;
+		return function () {
+			let date = ``;
+			const metaElement = document.querySelector(selector);
+			if (!metaElement) {
+				return date;
+			}
+			date = metaElement.content;
+			console.log(`heliotropium: <meta ${attr}> found.`, date);
+			return date;
+		};
+	});
+	return metatagFunctions;
 }
 
 function grabDate() {
