@@ -10,11 +10,6 @@ function parseDate(date) {
 	};
 }
 
-function checkDate(string) {
-	const re = /\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/;
-	return re.test(string);
-}
-
 function askDate(tabId) {
 	const message = { action: `get-date` };
 	chrome.tabs.sendMessage(tabId, message);
@@ -62,8 +57,6 @@ function handleMessage(tabId, message) {
 	const { date } = message;
 	if (!date) {
 		console.log(`date unavailable.`);
-	} else if (!checkDate(date)) {
-		console.log(`malformed date.`, date);
 	} else {
 		baEnabled = true;
 		const { year, month, day } = parseDate(date);
