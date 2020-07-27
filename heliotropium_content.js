@@ -28,28 +28,6 @@ function handleMessage(message) {
 	chrome.runtime.sendMessage(response);
 }
 
-function grabDateFromRelativeTimeElement() {
-	let date = ``;
-	const relativeTimeElement = document.querySelector(`relative-time[datetime]`);
-	if (!relativeTimeElement) {
-		return date;
-	}
-	date = relativeTimeElement.getAttribute(`datetime`);
-	console.log(`heliotropium: <relative-time> found.`, date);
-	return date;
-}
-
-function grabDateFromTimeElement() {
-	let date = ``;
-	const timeElement = document.querySelector(`time[datetime]`);
-	if (!timeElement) {
-		return date;
-	}
-	date = timeElement.dateTime;
-	console.log(`heliotropium: <time> found.`, date);
-	return date;
-}
-
 function grabDateFromJsonLd() {
 	let date = ``;
 	const jsonLdScripts = [
@@ -96,12 +74,46 @@ function generateGrabDateFromMetatag() {
 	return metatagFunctions;
 }
 
+function generateGrabValueFromElements({
+	elemName,
+	selectorAttr = null,
+	valueAttr,
+}) {
+	return function () {
+		let date = ``;
+		const selector = selectorAttr
+			? `${elemName}[${selectorAttr}][${valueAttr}]`
+			: `${elemName}[${valueAttr}]`;
+		const element = document.querySelector(selector);
+		if (!element) {
+			return date;
+		}
+		date = element.getAttribute(valueAttr);
+		console.log(
+			`heliotropium: <${elemName}${
+				selectorAttr ? ` ${selectorAttr}` : ``
+			}> found.`,
+			date,
+		);
+		return date;
+	};
+}
+
+function grabDateFromTimeElements() {
+	const timeElements = [
+		{ elemName: `relative-time`, valueAttr: `datetime` },
+		{ elemName: `time`, valueAttr: `datetime` },
+	];
+	return timeElements.map((elemData) =>
+		generateGrabValueFromElements(elemData),
+	);
+}
+
 function grabDate() {
 	const methods = [
 		grabDateFromJsonLd,
 		...generateGrabDateFromMetatag(),
-		grabDateFromRelativeTimeElement,
-		grabDateFromTimeElement,
+		...grabDateFromTimeElements(),
 	];
 	let date = ``;
 	for (const method of methods) {
