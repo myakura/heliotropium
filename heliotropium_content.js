@@ -52,28 +52,6 @@ function grabDateFromJsonLd() {
 	return date;
 }
 
-function generateGrabDateFromMetatag() {
-	const attributes = [
-		`property="article:published_time"`,
-		`name="pubdate"`,
-		`name="date"`,
-	];
-	const metatagFunctions = attributes.map((attr) => {
-		const selector = `meta[${attr}][content]`;
-		return function () {
-			let date = ``;
-			const metaElement = document.querySelector(selector);
-			if (!metaElement) {
-				return date;
-			}
-			date = metaElement.content;
-			console.log(`heliotropium: <meta ${attr}> found.`, date);
-			return date;
-		};
-	});
-	return metatagFunctions;
-}
-
 function generateGrabValueFromElements({
 	elemName,
 	selectorAttr = null,
@@ -99,6 +77,18 @@ function generateGrabValueFromElements({
 	};
 }
 
+function generateGrabDateFromMetatags() {
+	const attributes = [
+		`property="article:published_time"`,
+		`name="pubdate"`,
+		`name="date"`,
+	];
+	const metatags = attributes.map((attr) => {
+		return { elemName: `meta`, selectorAttr: attr, valueAttr: `content` };
+	});
+	return metatags.map((elemData) => generateGrabValueFromElements(elemData));
+}
+
 function grabDateFromTimeElements() {
 	const timeElements = [
 		{ elemName: `relative-time`, valueAttr: `datetime` },
@@ -112,7 +102,7 @@ function grabDateFromTimeElements() {
 function grabDate() {
 	const methods = [
 		grabDateFromJsonLd,
-		...generateGrabDateFromMetatag(),
+		...generateGrabDateFromMetatags(),
 		...grabDateFromTimeElements(),
 	];
 	let date = ``;
