@@ -8,7 +8,7 @@ function addListeners() {
 	chrome.runtime.onMessage.addListener(handleMessage);
 }
 
-function checkDate(string) {
+function isAcceptableDateFormat(string) {
 	const re = /\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/;
 	return re.test(string);
 }
@@ -100,15 +100,15 @@ function grabDateFromTimeElements() {
 }
 
 function grabDate() {
-	const methods = [
+	const grabDateFuntions = [
 		grabDateFromJsonLd,
 		...generateGrabDateFromMetatags(),
 		...grabDateFromTimeElements(),
 	];
 	let date = ``;
-	for (const method of methods) {
-		date = method();
-		if (checkDate(date)) {
+	for (const grabDateFunction of grabDateFuntions) {
+		date = grabDateFunction();
+		if (isAcceptableDateFormat(date)) {
 			break;
 		}
 	}
