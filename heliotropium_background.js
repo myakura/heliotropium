@@ -18,7 +18,7 @@ function askDate(tabId) {
 function getTabInfo(tabId, callback) {
 	chrome.tabs.get(tabId, (tab) => {
 		if (chrome.runtime.lastError) {
-			console.error(chrome.runtime.lastError);
+			console.error(chrome.runtime.lastError.message);
 		} else {
 			console.log(`about tab`, tab.id, tab);
 			callback(tab);
