@@ -58,22 +58,22 @@ function generateGrabValueFromElements({
 	valueAttr,
 }) {
 	return function () {
-		let date = ``;
+		let value = ``;
 		const selector = selectorAttr
 			? `${elemName}[${selectorAttr}][${valueAttr}]`
 			: `${elemName}[${valueAttr}]`;
 		const element = document.querySelector(selector);
 		if (!element) {
-			return date;
+			return value;
 		}
-		date = element.getAttribute(valueAttr);
+		value = element.getAttribute(valueAttr);
 		console.log(
 			`heliotropium: <${elemName}${
 				selectorAttr ? ` ${selectorAttr}` : ``
 			}> found.`,
-			date,
+			value,
 		);
-		return date;
+		return value;
 	};
 }
 
