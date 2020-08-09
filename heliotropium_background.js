@@ -50,25 +50,20 @@ function updateBrowserAction({
 }
 
 function handleMessage(tabId, message) {
-	let baEnabled = false;
-	let baBadgeText = ``;
-	let baTitle = ``;
-
+	let browserActionProps = { tabId }
 	const { date } = message;
-	if (!date) {
-		console.log(`date unavailable.`);
-	} else {
-		baEnabled = true;
+	if (date) {
 		const { year, month, day } = parseDate(date);
-		baBadgeText = `${month}${day}`;
-		baTitle = `${year}-${month}-${day}`;
+		browserActionProps = {
+			tabId,
+			enabled: true,
+			badgeText: `${month}${day}`,
+			title: `${year}-${month}-${day}`,
+		};
+	} else {
+		console.log(`date unavailable.`);
 	}
-	updateBrowserAction({
-		tabId,
-		enabled: baEnabled,
-		badgeText: baBadgeText,
-		title: baTitle,
-	});
+	updateBrowserAction(browserActionProps);
 }
 
 chrome.tabs.onActivated.addListener(({ tabId }) => {
