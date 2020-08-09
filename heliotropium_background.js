@@ -16,6 +16,10 @@ function askDate(tabId) {
 }
 
 function getTabInfo(tabId, callback) {
+	if (!tabId) {
+		console.log(`no tab with`, tabId);
+		return;
+	}
 	chrome.tabs.get(tabId, (tab) => {
 		if (chrome.runtime.lastError) {
 			console.error(chrome.runtime.lastError.message);
