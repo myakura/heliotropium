@@ -54,7 +54,7 @@ function updateBrowserAction({
 }
 
 function handleMessage(tabId, message) {
-	let browserActionProps = { tabId }
+	let browserActionProps = { tabId };
 	const { date } = message;
 	if (date) {
 		const { year, month, day } = parseDate(date);
