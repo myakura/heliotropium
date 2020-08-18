@@ -50,6 +50,7 @@ function updateBrowserAction({
 	chrome.browserAction[method](tabId);
 	chrome.browserAction.setIcon({ tabId, path: iconPath });
 	chrome.browserAction.setBadgeText({ tabId, text: badgeText });
+	chrome.browserAction.setBadgeBackgroundColor({ tabId, color: `#37f` })
 	chrome.browserAction.setTitle({ tabId, title });
 }
 
