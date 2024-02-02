@@ -1,11 +1,11 @@
 {
 	"manifest_version": 2,
 	"name": "Heliotropium",
-	"version": "0.7.15",
+	"version": "0.8.0",
 	"description": "Check out the date of the page",
 	"icons": {
-		"48": "icons/icon-black.png",
-		"96": "icons/icon-black.png"
+		"48": "icons/icon_black.png",
+		"96": "icons/icon_black.png"
 	},
 	"background": {
 		"scripts": [
@@ -49,7 +49,7 @@
 		}
 	],
 	"browser_action": {
-		"default_icon": "icons/icon-gray.png"
+		"default_icon": "icons/icon_gray.png"
 	},
 	"permissions": [
 		"tabs"

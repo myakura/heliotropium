@@ -45,10 +45,13 @@ function updateBrowserAction({
 	title = ``,
 }) {
 	const method = enabled ? `enable` : `disable`;
-	const iconPath = enabled ? `icons/icon-black.png` : `icons/icon-gray.png`;
-
+	const icon = enabled
+		? window.matchMedia(`(prefers-color-scheme: light)`).matches
+			? `icons/icon_black.png`
+			: `icons/icon_white.png`
+		: `icons/icon_gray.png`;
 	chrome.browserAction[method](tabId);
-	chrome.browserAction.setIcon({ tabId, path: iconPath });
+	chrome.browserAction.setIcon({ tabId, path: icon });
 	chrome.browserAction.setBadgeText({ tabId, text: badgeText });
 	chrome.browserAction.setBadgeBackgroundColor({ tabId, color: `#36f` })
 	chrome.browserAction.setTitle({ tabId, title });
