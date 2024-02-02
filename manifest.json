@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Heliotropium",
-	"version": "0.8.1",
+	"version": "0.8.2",
 	"description": "Check out the date of the page",
 	"icons": {
 		"48": "icons/icon_black.png",
@@ -20,8 +20,8 @@
 				"http://*/*"
 			],
 			"exclude_matches": [
-				"https://www.google.com/*",
-				"https://www.google.co.jp/*",
+				"https://*.google.com/*",
+				"https://*.google.co.jp/*",
 				"https://www.amazon.com/*",
 				"https://www.amazon.co.jp/*",
 				"https://www.facebook.com/*",
