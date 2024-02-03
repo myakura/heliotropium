@@ -39,15 +39,15 @@ function grabDateFromJsonLd() {
 	const jsonLdDates = jsonLdScripts.filter((script) => {
 		try {
 			const data = JSON.parse(script.textContent);
-			return `datePublished` in data;
+			return (`datePublished` in data || `uploadDate` in data);
 		} catch (error) {
 			return false;
 		}
 	});
 	if (jsonLdDates.length > 0) {
 		const data = JSON.parse(jsonLdDates[0].textContent);
-		date = data.datePublished;
-		console.log(`heliotropium: JSON-LD "datePublished" found.`, date);
+		date = data?.datePublished || data?.uploadDate;
+		console.log(`heliotropium: JSON-LD date found.`, date);
 	}
 	return date;
 }
