@@ -19,6 +19,15 @@ function grabJsonLdScripts() {
 	return scripts;
 }
 
+function hasJsonLdDateProperty(object) {
+	const JSON_LD_DATE_PROPERTY = [`datePublished`, `uploadDate`];
+	const dateProperties = Object.keys(object).filter((key) => JSON_LD_DATE_PROPERTY.includes(key));
+	if (dateProperties.length > 0) {
+		console.log(`heliotropium: found JSON-LD date property.`, dateProperties);
+	}
+	return dateProperties;
+}
+
 function handleMessage(message) {
 	console.log(`heliotropium: got a message.`, message);
 	if (!message) {
@@ -43,7 +52,7 @@ function grabDateFromJsonLd() {
 	const jsonLdWithDates = jsonLdScripts.filter((script) => {
 		try {
 			const data = JSON.parse(script.textContent);
-			return (`datePublished` in data || `uploadDate` in data);
+			return hasJsonLdDateProperty(data);
 		} catch (error) {
 			return false;
 		}
