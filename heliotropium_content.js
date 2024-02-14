@@ -21,11 +21,13 @@ function grabJsonLdScripts() {
 
 function hasJsonLdDateProperty(object) {
 	const JSON_LD_DATE_PROPERTY = [`datePublished`, `uploadDate`];
-	const dateProperties = Object.keys(object).filter((key) => JSON_LD_DATE_PROPERTY.includes(key));
-	if (dateProperties.length > 0) {
-		console.log(`heliotropium: found JSON-LD date property.`, dateProperties);
+	const hasDate = JSON_LD_DATE_PROPERTY.some((property) => {
+		return property in object;
+	});
+	if (hasDate) {
+		console.log(`heliotropium: found JSON-LD date property.`);
 	}
-	return dateProperties;
+	return hasDate;
 }
 
 function isJsonLdArticle(object) {
