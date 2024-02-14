@@ -28,6 +28,16 @@ function hasJsonLdDateProperty(object) {
 	return dateProperties;
 }
 
+function isJsonLdArticle(object) {
+	const ARTICLE_TYPES = ['Article', 'NewsArticle', 'BlogPosting'];
+	const type = object?.['@type'];
+	const isArticle = ARTICLE_TYPES.includes(type);
+	if (isArticle) {
+		console.log('heliotropium: found JSON-LD type.', type);
+	}
+	return isArticle;
+}
+
 function handleMessage(message) {
 	console.log(`heliotropium: got a message.`, message);
 	if (!message) {
