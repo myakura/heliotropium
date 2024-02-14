@@ -61,16 +61,18 @@ function grabDateFromJsonLd() {
 	if (jsonLdScripts.length === 0) {
 		return date;
 	}
-	const jsonLdWithDates = jsonLdScripts.filter((script) => {
+	const jsonLdWithDates = jsonLdScripts.map((script) => {
 		try {
 			const data = JSON.parse(script.textContent);
-			return hasJsonLdDateProperty(data);
+			return data;
 		} catch (error) {
 			return false;
 		}
+	}).filter((object) => {
+		return hasJsonLdDateProperty(object);
 	});
 	if (jsonLdWithDates.length > 0) {
-		const data = JSON.parse(jsonLdWithDates[0].textContent);
+		const data = jsonLdWithDates[0];
 		date = data?.datePublished || data?.uploadDate;
 		console.log(`heliotropium: JSON-LD date found.`, date);
 	}
