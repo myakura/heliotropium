@@ -13,6 +13,12 @@ function isAcceptableDateFormat(string) {
 	return re.test(string);
 }
 
+function grabJsonLdScripts() {
+	const scripts = [...document.querySelectorAll(`script[type="application/ld+json"]`)];
+	console.log(`heliotropium: found JSON-LD scripts.`, scripts);
+	return scripts;
+}
+
 function handleMessage(message) {
 	console.log(`heliotropium: got a message.`, message);
 	if (!message) {
@@ -30,9 +36,7 @@ function handleMessage(message) {
 
 function grabDateFromJsonLd() {
 	let date = ``;
-	const jsonLdScripts = [
-		...document.querySelectorAll(`script[type="application/ld+json"]`),
-	];
+	const jsonLdScripts = grabJsonLdScripts();
 	if (jsonLdScripts.length === 0) {
 		return date;
 	}
