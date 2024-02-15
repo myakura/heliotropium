@@ -10,7 +10,7 @@ function parseDate(date) {
 	};
 }
 
-function askDate(tabId) {
+function sendGetDate(tabId) {
 	const message = { action: `get-date` };
 	chrome.tabs.sendMessage(tabId, message);
 }
@@ -33,7 +33,7 @@ function getTabInfo(tabId, callback) {
 function isTabReadyAndWebby(tab, callback) {
 	const { id: tabId, active, url, status } = tab;
 	if (active && url.startsWith(`http`) && status === `complete`) {
-		console.log(`tab`, tabId, `is ready. asking date...`);
+		console.log(`tab`, tabId, `is ready. sending message...`);
 		callback(tabId);
 	}
 }
@@ -78,8 +78,8 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
 	console.log(`tab activated`, tabId);
 	getTabInfo(tabId, (tab) => {
 		isTabReadyAndWebby(tab, (tabId) => {
-			console.log(`tab`, tabId, `is ready. asking date...`);
-			askDate(tabId);
+			console.log(`tab`, tabId, `is ready. sending message...`);
+			sendGetDate(tabId);
 		});
 	});
 });
@@ -88,8 +88,8 @@ chrome.tabs.onUpdated.addListener((tabId) => {
 	console.log(`tab updated`, tabId);
 	getTabInfo(tabId, (tab) => {
 		isTabReadyAndWebby(tab, (tabId) => {
-			console.log(`tab`, tabId, `is ready. asking date...`);
-			askDate(tabId);
+			console.log(`tab`, tabId, `is ready. sending message...`);
+			sendGetDate(tabId);
 		});
 	});
 });

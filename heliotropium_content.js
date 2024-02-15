@@ -1,11 +1,11 @@
 'use strict';
 
-function isAcceptableDateFormat(string) {
+function isAcceptedDateFormat(string) {
 	const re = /(?<year>\d{4})[-\/\.](?<month>\d{1,2})[-\/\.](?<day>\d{1,2})/;
 	return re.test(string);
 }
 
-function grabJsonLdScripts() {
+function findJsonLdScripts() {
 	const scripts = [...document.querySelectorAll(`script[type="application/ld+json"]`)];
 	console.log(`heliotropium: found JSON-LD scripts.`, scripts);
 	return scripts;
@@ -32,9 +32,9 @@ function isJsonLdArticle(object) {
 	return isArticle;
 }
 
-function grabDateFromJsonLd() {
+function findDateFromJsonLd() {
 	let date = ``;
-	const jsonLdScripts = grabJsonLdScripts();
+	const jsonLdScripts = findJsonLdScripts();
 	if (jsonLdScripts.length === 0) {
 		return date;
 	}
@@ -68,18 +68,18 @@ function getAttrValue({selector, valueAttr}) {
 	return value;
 }
 
-function grabDateFromElements() {
+function findDateFromElements() {
 	let date = null;
-	const dateCandidates = [
+	const dateElements = [
 		{ selector: `meta[property="article:published_time"]`, valueAttr: `content` },
 		{ selector: `meta[name="pubdate"]`, valueAttr: `content` },
 		{ selector: `meta[name="date"]`, valueAttr: `content` },
 		{ selector: `relative-time`, valueAttr: `datetime` },
 		{ selector: `time`, valueAttr: `datetime` },
 	];
-	for (const {selector, valueAttr} of dateCandidates) {
+	for (const {selector, valueAttr} of dateElements) {
 		let value = getAttrValue({selector, valueAttr});
-		if (!!value && isAcceptableDateFormat(value)) {
+		if (!!value && isAcceptedDateFormat(value)) {
 			date = value;
 			break;
 		}
@@ -87,11 +87,11 @@ function grabDateFromElements() {
 	return date;
 }
 
-function grabDate() {
+function findDate() {
 	let date = null;
-	date = grabDateFromJsonLd();
-	if (!date || !isAcceptableDateFormat(date)) {
-		date = grabDateFromElements();
+	date = findDateFromJsonLd();
+	if (!date || !isAcceptedDateFormat(date)) {
+		date = findDateFromElements();
 	}
 	return date;
 }
@@ -104,7 +104,7 @@ function handleMessage(message) {
 	}
 	let response = {};
 	if (message?.action === `get-date`) {
-		response.date = grabDate();
+		response.date = findDate();
 	}
 	console.log(`heliotropium: sending back a response.`, response);
 	chrome.runtime.sendMessage(response);
