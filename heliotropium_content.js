@@ -17,7 +17,7 @@ function hasJsonLdDateProperty(object) {
 		return property in object;
 	});
 	if (hasDate) {
-		console.log(`heliotropium: found JSON-LD date property.`);
+		console.log(`heliotropium: found JSON-LD date property.`, object);
 	}
 	return hasDate;
 }
@@ -51,70 +51,47 @@ function grabDateFromJsonLd() {
 	if (jsonLdWithDates.length > 0) {
 		const data = jsonLdWithDates[0];
 		date = data?.datePublished || data?.uploadDate;
-		console.log(`heliotropium: JSON-LD date found.`, date);
+		console.log(`heliotropium: found date "${date}" from`, data);
 	}
 	return date;
 }
 
-function generateGrabValueFromElements({
-	elemName,
-	selectorAttr = null,
-	valueAttr,
-}) {
-	return function () {
-		let value = ``;
-		const selector = selectorAttr
-			? `${elemName}[${selectorAttr}][${valueAttr}]`
-			: `${elemName}[${valueAttr}]`;
-		const element = document.querySelector(selector);
-		if (!element) {
-			return value;
+function getAttrValue({selector, valueAttr}) {
+	const qsaArgument = `${selector}[${valueAttr}]`;
+	const matched = [...document.querySelectorAll(qsaArgument)];
+	if (matched.length === 0) {
+		return null;
+	}
+	const firstMatched = matched[0];
+	const value = firstMatched.getAttribute(valueAttr);
+	console.log(`heliotropium: found "${valueAttr}" value of "${value}" in`, firstMatched);
+	return value;
+}
+
+function grabDateFromElements() {
+	let date = null;
+	const dateCandidates = [
+		{ selector: `meta[property="article:published_time"]`, valueAttr: `content` },
+		{ selector: `meta[name="pubdate"]`, valueAttr: `content` },
+		{ selector: `meta[name="date"]`, valueAttr: `content` },
+		{ selector: `relative-time`, valueAttr: `datetime` },
+		{ selector: `time`, valueAttr: `datetime` },
+	];
+	for (const {selector, valueAttr} of dateCandidates) {
+		let value = getAttrValue({selector, valueAttr});
+		if (!!value && isAcceptableDateFormat(value)) {
+			date = value;
+			break;
 		}
-		value = element.getAttribute(valueAttr);
-		console.log(
-			`heliotropium: <${elemName}${
-				selectorAttr ? ` ${selectorAttr}` : ``
-			}> found.`,
-			value,
-		);
-		return value;
-	};
-}
-
-function generateGrabDateFromMetatags() {
-	const attributes = [
-		`property="article:published_time"`,
-		`name="pubdate"`,
-		`name="date"`,
-	];
-	const metatags = attributes.map((attr) => {
-		return { elemName: `meta`, selectorAttr: attr, valueAttr: `content` };
-	});
-	return metatags.map((elemData) => generateGrabValueFromElements(elemData));
-}
-
-function grabDateFromTimeElements() {
-	const timeElements = [
-		{ elemName: `relative-time`, valueAttr: `datetime` },
-		{ elemName: `time`, valueAttr: `datetime` },
-	];
-	return timeElements.map((elemData) =>
-		generateGrabValueFromElements(elemData),
-	);
+	}
+	return date;
 }
 
 function grabDate() {
-	const grabDateFuntions = [
-		grabDateFromJsonLd,
-		...generateGrabDateFromMetatags(),
-		...grabDateFromTimeElements(),
-	];
-	let date = ``;
-	for (const grabDateFunction of grabDateFuntions) {
-		date = grabDateFunction();
-		if (isAcceptableDateFormat(date)) {
-			break;
-		}
+	let date = null;
+	date = grabDateFromJsonLd();
+	if (!date || !isAcceptableDateFormat(date)) {
+		date = grabDateFromElements();
 	}
 	return date;
 }
