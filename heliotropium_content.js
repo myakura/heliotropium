@@ -1,13 +1,5 @@
 'use strict';
 
-function init() {
-	addListeners();
-}
-
-function addListeners() {
-	chrome.runtime.onMessage.addListener(handleMessage);
-}
-
 function isAcceptableDateFormat(string) {
 	const re = /\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/;
 	return re.test(string);
@@ -38,21 +30,6 @@ function isJsonLdArticle(object) {
 		console.log('heliotropium: found JSON-LD type.', type);
 	}
 	return isArticle;
-}
-
-function handleMessage(message) {
-	console.log(`heliotropium: got a message.`, message);
-	if (!message) {
-		console.log(`heliotrpium: message is empty.`);
-		return;
-	}
-
-	let response = {};
-	if (message?.action === `get-date`) {
-		response.date = grabDate();
-	}
-	console.log(`heliotropium: sending back a response.`, response);
-	chrome.runtime.sendMessage(response);
 }
 
 function grabDateFromJsonLd() {
@@ -142,4 +119,18 @@ function grabDate() {
 	return date;
 }
 
-init();
+function handleMessage(message) {
+	console.log(`heliotropium: got a message.`, message);
+	if (!message) {
+		console.log(`heliotrpium: message is empty.`);
+		return;
+	}
+	let response = {};
+	if (message?.action === `get-date`) {
+		response.date = grabDate();
+	}
+	console.log(`heliotropium: sending back a response.`, response);
+	chrome.runtime.sendMessage(response);
+}
+
+chrome.runtime.onMessage.addListener(handleMessage);
