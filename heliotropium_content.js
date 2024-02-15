@@ -1,7 +1,7 @@
 'use strict';
 
 function isAcceptableDateFormat(string) {
-	const re = /\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/;
+	const re = /(?<year>\d{4})[-\/\.](?<month>\d{1,2})[-\/\.](?<day>\d{1,2})/;
 	return re.test(string);
 }
 
