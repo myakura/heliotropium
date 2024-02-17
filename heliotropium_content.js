@@ -12,8 +12,8 @@ function findJsonLdScripts() {
 }
 
 function hasJsonLdDateProperty(object) {
-	const JSON_LD_DATE_PROPERTY = [`datePublished`, `uploadDate`];
-	const hasDate = JSON_LD_DATE_PROPERTY.some((property) => {
+	const JSON_LD_DATE_PROPERTIES = [`datePublished`, `uploadDate`];
+	const hasDate = JSON_LD_DATE_PROPERTIES.some((property) => {
 		return property in object;
 	});
 	if (hasDate) {
@@ -23,9 +23,9 @@ function hasJsonLdDateProperty(object) {
 }
 
 function isJsonLdArticle(object) {
-	const ARTICLE_TYPES_SUFFIX = [`Article`, `BlogPosting`];
+	const ARTICLE_TYPE_SUFFIXES = [`Article`, `BlogPosting`];
 	const type = object?.[`@type`];
-	const isArticle = ARTICLE_TYPES_SUFFIX.some((suffix) => {
+	const isArticle = ARTICLE_TYPE_SUFFIXES.some((suffix) => {
 		return type?.endsWith(suffix);
 	});
 	if (isArticle) {
