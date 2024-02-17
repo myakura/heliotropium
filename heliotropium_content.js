@@ -77,6 +77,9 @@ function findDateFromJsonLd() {
 	if (date) {
 		console.log(`heliotropium: found date "${date}" in`, object);
 	}
+	else {
+		console.log(`heliotropium: no date found in JSON-LD.`);
+	}
 	return date;
 }
 
