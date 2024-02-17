@@ -54,22 +54,16 @@ function findDateFromJsonLd() {
 	});
 
 	for (const data of parsedData) {
+		// { "@type": "Article", "datePublished": "..." }
 		if (isJsonLdArticle(data) && hasJsonLdDateProperty(data)) {
 			object = data;
 			break;
 		}
-		const graph = data?.[`@graph`];
-		if (!!graph && Array.isArray(graph)) {
-			const article = graph.find((item) => {
-				return isJsonLdArticle(item) && hasJsonLdDateProperty(item);
-			});
-			if (article) {
-				object = article;
-				break;
-			}
-		}
-		if (Array.isArray(data)) {
-			const article = data.find((item) => {
+		// [{ "@type": "Article", "datePublished": "..." }]
+		// { "@graph": [{ "@type": "Article", "datePublished": "..." }] }
+		const arraysToCheck = [data, data?.['@graph']].filter(Array.isArray);
+		for (const array of arraysToCheck) {
+			const article = array.find((item) => {
 				return isJsonLdArticle(item) && hasJsonLdDateProperty(item);
 			});
 			if (article) {
