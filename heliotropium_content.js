@@ -22,37 +22,69 @@ function hasJsonLdDateProperty(object) {
 	return hasDate;
 }
 
+function grabDate(object) {
+	return object?.datePublished || object?.uploadDate;
+}
+
 function isJsonLdArticle(object) {
-	const ARTICLE_TYPES = ['Article', 'NewsArticle', 'BlogPosting'];
-	const type = object?.['@type'];
-	const isArticle = ARTICLE_TYPES.includes(type);
+	const ARTICLE_TYPES_SUFFIX = [`Article`, `BlogPosting`];
+	const type = object?.[`@type`];
+	const isArticle = ARTICLE_TYPES_SUFFIX.some((suffix) => {
+		return type.endsWith(suffix);
+	});
 	if (isArticle) {
-		console.log('heliotropium: found JSON-LD type.', type);
+		console.log(`heliotropium: found JSON-LD type.`, type);
 	}
 	return isArticle;
 }
 
 function findDateFromJsonLd() {
-	let date = ``;
+	let date = null;
+
 	const jsonLdScripts = findJsonLdScripts();
 	if (jsonLdScripts.length === 0) {
 		return date;
 	}
-	const jsonLdWithDates = jsonLdScripts.map((script) => {
+
+	const parsedData = jsonLdScripts.map((script) => {
 		try {
-			const data = JSON.parse(script.textContent);
-			return data;
+			return JSON.parse(script.textContent);
 		} catch (error) {
-			return false;
+			return null;
 		}
-	}).filter((object) => {
-		return hasJsonLdDateProperty(object);
+	}).filter((data) => {
+		return data !== null;
 	});
-	if (jsonLdWithDates.length > 0) {
-		const data = jsonLdWithDates[0];
-		date = data?.datePublished || data?.uploadDate;
-		console.log(`heliotropium: found date "${date}" from`, data);
+
+	for (const data of parsedData) {
+		if (isJsonLdArticle(data) && hasJsonLdDateProperty(data)) {
+			date = grabDate(data);
+			console.log(`heliotropium: found date "${date}" in`, data);
+			break;
+		}
+		const graph = data?.[`@graph`];
+		if (!!graph && Array.isArray(graph)) {
+			const article = graph.find((object) => {
+				return isJsonLdArticle(object) && hasJsonLdDateProperty(object);
+			});
+			if (article) {
+				date = grabDate(article);
+				console.log(`heliotropium: found date "${date}" in`, article);
+				break;
+			}
+		}
+		if (Array.isArray(data)) {
+			const article = data.find((object) => {
+				return isJsonLdArticle(object) && hasJsonLdDateProperty(object);
+			});
+			if (article) {
+				date = grabDate(article);
+				console.log(`heliotropium: found date "${date}" in`, article);
+				break;
+			}
+		}
 	}
+
 	return date;
 }
 
