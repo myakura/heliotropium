@@ -22,10 +22,6 @@ function hasJsonLdDateProperty(object) {
 	return hasDate;
 }
 
-function grabDate(object) {
-	return object?.datePublished || object?.uploadDate;
-}
-
 function isJsonLdArticle(object) {
 	const ARTICLE_TYPES_SUFFIX = [`Article`, `BlogPosting`];
 	const type = object?.[`@type`];
@@ -39,6 +35,7 @@ function isJsonLdArticle(object) {
 }
 
 function findDateFromJsonLd() {
+	let object = null;
 	let date = null;
 
 	const jsonLdScripts = findJsonLdScripts();
@@ -58,33 +55,34 @@ function findDateFromJsonLd() {
 
 	for (const data of parsedData) {
 		if (isJsonLdArticle(data) && hasJsonLdDateProperty(data)) {
-			date = grabDate(data);
-			console.log(`heliotropium: found date "${date}" in`, data);
+			object = data;
 			break;
 		}
 		const graph = data?.[`@graph`];
 		if (!!graph && Array.isArray(graph)) {
-			const article = graph.find((object) => {
-				return isJsonLdArticle(object) && hasJsonLdDateProperty(object);
+			const article = graph.find((item) => {
+				return isJsonLdArticle(item) && hasJsonLdDateProperty(item);
 			});
 			if (article) {
-				date = grabDate(article);
-				console.log(`heliotropium: found date "${date}" in`, article);
+				object = article;
 				break;
 			}
 		}
 		if (Array.isArray(data)) {
-			const article = data.find((object) => {
-				return isJsonLdArticle(object) && hasJsonLdDateProperty(object);
+			const article = data.find((item) => {
+				return isJsonLdArticle(item) && hasJsonLdDateProperty(item);
 			});
 			if (article) {
-				date = grabDate(article);
-				console.log(`heliotropium: found date "${date}" in`, article);
+				object = article;
 				break;
 			}
 		}
 	}
 
+	date = object?.datePublished || object?.uploadDate;
+	if (date) {
+		console.log(`heliotropium: found date "${date}" in`, object);
+	}
 	return date;
 }
 
