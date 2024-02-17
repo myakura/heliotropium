@@ -26,7 +26,7 @@ function isJsonLdArticle(object) {
 	const ARTICLE_TYPES_SUFFIX = [`Article`, `BlogPosting`];
 	const type = object?.[`@type`];
 	const isArticle = ARTICLE_TYPES_SUFFIX.some((suffix) => {
-		return type.endsWith(suffix);
+		return type?.endsWith(suffix);
 	});
 	if (isArticle) {
 		console.log(`heliotropium: found JSON-LD type.`, type);
