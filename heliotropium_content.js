@@ -83,7 +83,7 @@ function findDateFromJsonLd() {
 	return date;
 }
 
-function getAttrValue({selector, valueAttr}) {
+function getAttrValue({ selector, valueAttr }) {
 	const qsaArgument = `${selector}[${valueAttr}]`;
 	const matched = [...document.querySelectorAll(qsaArgument)];
 	if (matched.length === 0) {
@@ -104,8 +104,8 @@ function findDateFromElements() {
 		{ selector: `relative-time`, valueAttr: `datetime` },
 		{ selector: `time`, valueAttr: `datetime` },
 	];
-	for (const {selector, valueAttr} of dateElements) {
-		let value = getAttrValue({selector, valueAttr});
+	for (const { selector, valueAttr } of dateElements) {
+		let value = getAttrValue({ selector, valueAttr });
 		if (!!value && isAcceptedDateFormat(value)) {
 			date = value;
 			break;
