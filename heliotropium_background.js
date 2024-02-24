@@ -1,6 +1,7 @@
 'use strict';
 
-function parseDate(date) {
+function parseDateYYYYMMDD(date) {
+	// e.g. "2001-01-01", "2001/01/01", "2001.01.01"
 	const re = /(?<year>\d{4})[-\/\.](?<month>\d{1,2})[-\/\.](?<day>\d{1,2})/;
 	const { year, month, day } = re.exec(date).groups;
 	return {
@@ -61,7 +62,7 @@ function handleMessage(tabId, message) {
 	let browserActionProps = { tabId };
 	const { date } = message;
 	if (date) {
-		const { year, month, day } = parseDate(date);
+		const { year, month, day } = parseDateYYYYMMDD(date);
 		browserActionProps = {
 			tabId,
 			enabled: true,
