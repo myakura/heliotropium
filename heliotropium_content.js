@@ -7,7 +7,9 @@ function isAcceptedDateFormat(string) {
 
 function findJsonLdScripts() {
 	const scripts = [...document.querySelectorAll(`script[type="application/ld+json"]`)];
-	console.log(`heliotropium: found JSON-LD scripts.`, scripts);
+	if (scripts.length > 0) {
+		console.log(`heliotropium: found JSON-LD scripts.`, scripts);
+	}
 	return scripts;
 }
 
