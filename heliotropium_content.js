@@ -45,7 +45,7 @@ function findDateFromJsonLd() {
 
 	const parsedData = jsonLdScripts.map((script) => {
 		try {
-			return JSON.parse(script.textContent);
+			return JSON.parse(script.textContent?.replaceAll(`\n`, ``));
 		} catch (error) {
 			return null;
 		}
