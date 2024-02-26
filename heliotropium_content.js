@@ -5,6 +5,33 @@ function isAcceptedDateFormat(string) {
 	return re.test(string);
 }
 
+function parseFuzzyDateString(string) {
+	const monthsMap = {
+		jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
+		jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12
+	};
+	// "March 19th, 1984", "Mar. 19, 1984", etc.
+	const reMonthDayYear = /(?<monthStr>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<dayStr>\d{1,2})(st|nd|rd|th)?,?\s+(?<yearStr>\d{4})/i;
+	// "19th March 1984", "19 Mar 1984", etc.
+	const reDayMonthYear = /(?<dayStr>\d{1,2})(st|nd|rd|th)?\s+(?<monthStr>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<yearStr>\d{4})/i;
+
+	const regexes = [reMonthDayYear, reDayMonthYear];
+	let match;
+	for (const regex of regexes) {
+		match = regex.exec(string);
+		if (match) break;
+	}
+	if (!match) return null;
+
+	const { yearStr, monthStr, dayStr } = match.groups;
+
+	return {
+		year: parseInt(yearStr, 10),
+		month: monthsMap[monthStr.toLowerCase()],
+		day: parseInt(dayStr, 10),
+	};
+}
+
 function findJsonLdScripts() {
 	const scripts = [...document.querySelectorAll(`script[type="application/ld+json"]`)];
 	if (scripts.length > 0) {
