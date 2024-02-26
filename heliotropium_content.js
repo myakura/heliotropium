@@ -47,7 +47,11 @@ function findDateFromJsonLd() {
 
 	const parsedData = jsonLdScripts.map((script) => {
 		try {
-			return JSON.parse(script.textContent?.replaceAll(`\n`, ``));
+			// technically invalid per spec, but there are sites putting
+			// unescaped newlines in JSON-LD scripts, so just remove them.
+			const scriptContent = script.textContent.replaceAll(`\n`, ``);
+			// FIXME: some sites even has `<!CDATA[...]]>` in script element :(
+			return JSON.parse(scriptContent);
 		} catch (error) {
 			return null;
 		}
