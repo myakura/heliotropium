@@ -1,8 +1,8 @@
 'use strict';
 
 function parseDateYYYYMMDD(date) {
-	// e.g. "2001-01-01", "2001/01/01", "2001.01.01"
-	const re = /(?<year>\d{4})[-\/\.](?<month>\d{1,2})[-\/\.](?<day>\d{1,2})/;
+	// e.g. "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
+	const re = /(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/;
 	const { year, month, day } = re.exec(date).groups;
 	return {
 		year,
