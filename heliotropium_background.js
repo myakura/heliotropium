@@ -1,14 +1,70 @@
 'use strict';
 
-function parseDateYYYYMMDD(date) {
+function isAcceptedDateYYYYMMDD(string) {
 	// e.g. "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
 	const re = /(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/;
-	const { year, month, day } = re.exec(date).groups;
+	return re.test(string);
+}
+
+function isAcceptedFuzzyDateString(string) {
+	// "March 19th, 1984", "Mar. 19, 1984", etc.
+	const reMonthDayYear = /(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i;
+	// "19th March 1984", "19 Mar 1984", etc.
+	const reDayMonthYear = /(?<day>\d{1,2})(st|nd|rd|th)?\s+(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<year>\d{4})/i;
+
+	return reMonthDayYear.test(string) || reDayMonthYear.test(string);
+}
+
+function isAcceptedDate(string) {
+	return isAcceptedDateYYYYMMDD(string) || isAcceptedFuzzyDateString(string);
+}
+
+function parseDateYYYYMMDD(dateString) {
+	// e.g. "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
+	const re = /(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/;
+	const { year, month, day } = re.exec(dateString).groups;
 	return {
 		year,
 		month: month.padStart(2, `0`),
 		day: day.padStart(2, `0`),
 	};
+}
+
+function parseFuzzyDateString(dateString) {
+	const monthsMap = {
+		jan: '1', feb: '2', mar: '3', apr: '4', may: '5', jun: '6',
+		jul: '7', aug: '8', sep: '9', oct: '10', nov: '11', dec: '12'
+	};
+	// "March 19th, 1984", "Mar. 19, 1984", etc.
+	const reMonthDayYear = /(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i;
+	// "19th March 1984", "19 Mar 1984", etc.
+	const reDayMonthYear = /(?<day>\d{1,2})(st|nd|rd|th)?\s+(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<year>\d{4})/i;
+
+	const regexes = [reMonthDayYear, reDayMonthYear];
+	let match;
+	for (const regex of regexes) {
+		match = regex.exec(dateString);
+		if (match) break;
+	}
+	if (!match) return null;
+
+	const { year, month, day } = match.groups;
+
+	return {
+		year: year,
+		month: monthsMap[month.toLowerCase()].padStart(2, `0`),
+		day: day.padStart(2, `0`),
+	};
+}
+
+function parseDate(string) {
+	if (isAcceptedDateYYYYMMDD(string)) {
+		return parseDateYYYYMMDD(string);
+	} else if (isAcceptedFuzzyDateString(string)) {
+		return parseFuzzyDateString(string);
+	} else {
+		return null;
+	}
 }
 
 function sendGetDate(tabId) {
@@ -61,8 +117,8 @@ function updateBrowserAction({
 function handleMessage(tabId, message) {
 	let browserActionProps = { tabId };
 	const { date } = message;
-	if (date) {
-		const { year, month, day } = parseDateYYYYMMDD(date);
+	if (date && isAcceptedDate(date)) {
+		const { year, month, day } = parseDate(date);
 		browserActionProps = {
 			tabId,
 			enabled: true,

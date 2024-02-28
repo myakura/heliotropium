@@ -1,38 +1,5 @@
 'use strict';
 
-function isAcceptedDateFormat(string) {
-	// e.g. "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
-	const re = /(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/;
-	return re.test(string);
-}
-
-function parseFuzzyDateString(string) {
-	const monthsMap = {
-		jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
-		jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12
-	};
-	// "March 19th, 1984", "Mar. 19, 1984", etc.
-	const reMonthDayYear = /(?<monthStr>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<dayStr>\d{1,2})(st|nd|rd|th)?,?\s+(?<yearStr>\d{4})/i;
-	// "19th March 1984", "19 Mar 1984", etc.
-	const reDayMonthYear = /(?<dayStr>\d{1,2})(st|nd|rd|th)?\s+(?<monthStr>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<yearStr>\d{4})/i;
-
-	const regexes = [reMonthDayYear, reDayMonthYear];
-	let match;
-	for (const regex of regexes) {
-		match = regex.exec(string);
-		if (match) break;
-	}
-	if (!match) return null;
-
-	const { yearStr, monthStr, dayStr } = match.groups;
-
-	return {
-		year: parseInt(yearStr, 10),
-		month: monthsMap[monthStr.toLowerCase()],
-		day: parseInt(dayStr, 10),
-	};
-}
-
 function findJsonLdScripts() {
 	const scripts = [...document.querySelectorAll(`script[type="application/ld+json"]`)];
 	if (scripts.length > 0) {
@@ -129,7 +96,18 @@ function getAttrValue({ selector, valueAttr }) {
 	return value;
 }
 
-function findDateFromElements() {
+function getElementContent({ selector }) {
+	const matched = [...document.querySelectorAll(selector)];
+	if (matched.length === 0) {
+		return null;
+	}
+	const firstMatched = matched[0];
+	const value = firstMatched.textContent.trim();
+	console.log(`heliotropium: found content of "${value}" in`, firstMatched);
+	return value;
+}
+
+function findDateFromDateElements() {
 	let date = null;
 	const dateElements = [
 		{ selector: `meta[property="article:published_time"]`, valueAttr: `content` },
@@ -140,7 +118,23 @@ function findDateFromElements() {
 	];
 	for (const { selector, valueAttr } of dateElements) {
 		let value = getAttrValue({ selector, valueAttr });
-		if (!!value && isAcceptedDateFormat(value)) {
+		if (!!value) {
+			date = value;
+			break;
+		}
+	}
+	return date;
+}
+
+function findDateFromElementContent() {
+	let date = null;
+	const dateElements = [
+		{ selector: `time` },
+		{ selector: `.date` },
+	];
+	for (const { selector } of dateElements) {
+		let value = getElementContent({ selector });
+		if (!!value) {
 			date = value;
 			break;
 		}
@@ -151,8 +145,16 @@ function findDateFromElements() {
 function findDate() {
 	let date = null;
 	date = findDateFromJsonLd();
-	if (!date || !isAcceptedDateFormat(date)) {
-		date = findDateFromElements();
+	if (!!date) {
+		return date;
+	}
+	date = findDateFromDateElements();
+	if (!!date) {
+		return date;
+	}
+	date = findDateFromElementContent();
+	if (!!date) {
+		return date;
 	}
 	return date;
 }
@@ -163,10 +165,16 @@ function handleMessage(message) {
 		console.log(`heliotrpium: message is empty.`);
 		return;
 	}
-	let response = {};
-	if (message?.action === `get-date`) {
-		response.date = findDate();
+	if (message?.action !== `get-date`) {
+		console.log(`heliotrpium: message is invalid.`);
+		return;
 	}
+	const date = findDate();
+	if (!date) {
+		console.log(`heliotropium: no date found.`);
+		return;
+	}
+	let response = { date };
 	console.log(`heliotropium: sending back a response.`, response);
 	chrome.runtime.sendMessage(response);
 }
