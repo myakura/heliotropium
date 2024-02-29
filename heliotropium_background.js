@@ -115,20 +115,19 @@ function updateBrowserAction({
 }
 
 function handleMessage(tabId, message) {
-	let browserActionProps = { tabId };
 	const { date } = message;
 	if (date && isAcceptedDate(date)) {
 		const { year, month, day } = parseDate(date);
-		browserActionProps = {
+		updateBrowserAction({
 			tabId,
 			enabled: true,
 			badgeText: `${month}${day}`,
 			title: `${year}-${month}-${day}`,
-		};
+		});
 	} else {
 		console.log(`date unavailable.`);
+		updateBrowserAction({ tabId });
 	}
-	updateBrowserAction(browserActionProps);
 }
 
 chrome.tabs.onActivated.addListener(({ tabId }) => {
