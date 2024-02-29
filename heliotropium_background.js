@@ -60,11 +60,11 @@ function parseFuzzyDateString(dateString) {
 function parseDate(string) {
 	if (isAcceptedDateYYYYMMDD(string)) {
 		return parseDateYYYYMMDD(string);
-	} else if (isAcceptedFuzzyDateString(string)) {
-		return parseFuzzyDateString(string);
-	} else {
-		return null;
 	}
+	if (isAcceptedFuzzyDateString(string)) {
+		return parseFuzzyDateString(string);
+	}
+	return null;
 }
 
 function sendGetDate(tabId) {
