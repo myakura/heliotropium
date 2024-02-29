@@ -62,11 +62,6 @@ function parseDate(string) {
 	return null;
 }
 
-function sendGetDate(tabId) {
-	const message = { action: `get-date` };
-	chrome.tabs.sendMessage(tabId, message);
-}
-
 function getTabInfo(tabId, callback) {
 	if (!tabId) {
 		console.log(`no tab with`, tabId);
@@ -82,11 +77,11 @@ function getTabInfo(tabId, callback) {
 	});
 }
 
-function isTabReadyAndWebby(tab, callback) {
+function sendGetDate(tab) {
 	const { id: tabId, active, url, status } = tab;
 	if (active && url.startsWith(`http`) && status === `complete`) {
 		console.log(`tab`, tabId, `is ready. sending message...`);
-		callback(tabId);
+		chrome.tabs.sendMessage(tabId, { action: `get-date` });
 	}
 }
 
@@ -127,22 +122,12 @@ function handleMessage(tabId, message) {
 
 chrome.tabs.onActivated.addListener(({ tabId }) => {
 	console.log(`tab activated`, tabId);
-	getTabInfo(tabId, (tab) => {
-		isTabReadyAndWebby(tab, (tabId) => {
-			console.log(`tab`, tabId, `is ready. sending message...`);
-			sendGetDate(tabId);
-		});
-	});
+	getTabInfo(tabId, sendGetDate);
 });
 
 chrome.tabs.onUpdated.addListener((tabId) => {
 	console.log(`tab updated`, tabId);
-	getTabInfo(tabId, (tab) => {
-		isTabReadyAndWebby(tab, (tabId) => {
-			console.log(`tab`, tabId, `is ready. sending message...`);
-			sendGetDate(tabId);
-		});
-	});
+	getTabInfo(tabId, sendGetDate);
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
