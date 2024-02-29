@@ -62,6 +62,23 @@ function parseDate(string) {
 	return null;
 }
 
+function handleMessage(tabId, message) {
+	const { date } = message;
+	const parsedDate = parseDate(date);
+	if (parsedDate) {
+		const { year, month, day } = parsedDate;
+		updateBrowserAction({
+			tabId,
+			enabled: true,
+			badgeText: `${month}${day}`,
+			title: `${year}-${month}-${day}`,
+		});
+	} else {
+		console.log(`date unavailable.`);
+		updateBrowserAction({ tabId });
+	}
+}
+
 function getTabInfo(tabId, callback) {
 	if (!tabId) {
 		console.log(`no tab with`, tabId);
@@ -102,22 +119,6 @@ function updateBrowserAction({
 	chrome.browserAction.setBadgeText({ tabId, text: badgeText });
 	chrome.browserAction.setBadgeBackgroundColor({ tabId, color: `#36f` })
 	chrome.browserAction.setTitle({ tabId, title });
-}
-
-function handleMessage(tabId, message) {
-	const { date } = message;
-	if (date && isAcceptedDate(date)) {
-		const { year, month, day } = parseDate(date);
-		updateBrowserAction({
-			tabId,
-			enabled: true,
-			badgeText: `${month}${day}`,
-			title: `${year}-${month}-${day}`,
-		});
-	} else {
-		console.log(`date unavailable.`);
-		updateBrowserAction({ tabId });
-	}
 }
 
 chrome.tabs.onActivated.addListener(({ tabId }) => {
