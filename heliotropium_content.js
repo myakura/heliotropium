@@ -143,20 +143,15 @@ function findDateFromElementContent() {
 }
 
 function findDate() {
-	let date = null;
-	date = findDateFromJsonLd();
-	if (!!date) {
-		return date;
+	const finders = [findDateFromJsonLd, findDateFromDateElements, findDateFromElementContent];
+
+	for (const finder of finders) {
+		const date = finder();
+		if (date) {
+			return date;
+		}
 	}
-	date = findDateFromDateElements();
-	if (!!date) {
-		return date;
-	}
-	date = findDateFromElementContent();
-	if (!!date) {
-		return date;
-	}
-	return date;
+	return null;
 }
 
 function handleMessage(message) {
