@@ -2,9 +2,7 @@
 
 function hasJsonLdDateProperty(object) {
 	const JSON_LD_DATE_PROPERTIES = [`datePublished`, `uploadDate`];
-	const hasDate = JSON_LD_DATE_PROPERTIES.some((property) => {
-		return property in object;
-	});
+	const hasDate = JSON_LD_DATE_PROPERTIES.some((property) => property in object);
 	if (hasDate) {
 		console.log(`heliotropium: found JSON-LD date property.`, object);
 	}
@@ -14,9 +12,7 @@ function hasJsonLdDateProperty(object) {
 function isJsonLdArticle(object) {
 	const ARTICLE_TYPE_SUFFIXES = [`Article`, `BlogPosting`];
 	const type = object?.[`@type`];
-	const isArticle = ARTICLE_TYPE_SUFFIXES.some((suffix) => {
-		return type?.endsWith(suffix);
-	});
+	const isArticle = ARTICLE_TYPE_SUFFIXES.some((suffix) => type?.endsWith(suffix));
 	if (isArticle) {
 		console.log(`heliotropium: found JSON-LD type.`, type);
 	}
