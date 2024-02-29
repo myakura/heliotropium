@@ -9,18 +9,6 @@ const RE_MONTH_DAY_YEAR = /(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|
 // "19th March 1984", "19 Mar 1984", etc.
 const RE_DAY_MONTH_YEAR = /(?<day>\d{1,2})(st|nd|rd|th)?\s+(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<year>\d{4})/i;
 
-function isAcceptedDateYYYYMMDD(string) {
-	return RE_YYYYMMDD.test(string);
-}
-
-function isAcceptedFuzzyDateString(string) {
-	return RE_MONTH_DAY_YEAR.test(string) || RE_DAY_MONTH_YEAR.test(string);
-}
-
-function isAcceptedDate(string) {
-	return isAcceptedDateYYYYMMDD(string) || isAcceptedFuzzyDateString(string);
-}
-
 function parseDateYYYYMMDD(dateString) {
 	const { year, month, day } = RE_YYYYMMDD.exec(dateString).groups;
 	return {
@@ -53,10 +41,10 @@ function parseFuzzyDateString(dateString) {
 }
 
 function parseDate(string) {
-	if (isAcceptedDateYYYYMMDD(string)) {
+	if (RE_YYYYMMDD.test(string)) {
 		return parseDateYYYYMMDD(string);
 	}
-	if (isAcceptedFuzzyDateString(string)) {
+	if (RE_MONTH_DAY_YEAR.test(string) || RE_DAY_MONTH_YEAR.test(string)) {
 		return parseFuzzyDateString(string);
 	}
 	return null;
