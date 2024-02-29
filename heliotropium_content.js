@@ -99,7 +99,6 @@ function getElementContent({ selector }) {
 }
 
 function findDateFromDateElements() {
-	let date = null;
 	const dateElements = [
 		{ selector: `meta[property="article:published_time"]`, valueAttr: `content` },
 		{ selector: `meta[name="pubdate"]`, valueAttr: `content` },
@@ -107,30 +106,26 @@ function findDateFromDateElements() {
 		{ selector: `relative-time`, valueAttr: `datetime` },
 		{ selector: `time`, valueAttr: `datetime` },
 	];
+
 	for (const { selector, valueAttr } of dateElements) {
-		let value = getAttrValue({ selector, valueAttr });
-		if (!!value) {
-			date = value;
-			break;
+		const value = getAttrValue({ selector, valueAttr });
+		if (value) {
+			return value;
 		}
 	}
-	return date;
+	return null;
 }
 
 function findDateFromElementContent() {
-	let date = null;
-	const dateElements = [
-		{ selector: `time` },
-		{ selector: `.date` },
-	];
-	for (const { selector } of dateElements) {
-		let value = getElementContent({ selector });
-		if (!!value) {
-			date = value;
-			break;
+	const dateElements = ['time', '.date'];
+
+	for (const selector of dateElements) {
+		const value = getElementContent({ selector });
+		if (value) {
+			return value;
 		}
 	}
-	return date;
+	return null;
 }
 
 function findDate() {
