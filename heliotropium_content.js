@@ -89,7 +89,7 @@ function getAttrValue({ selector, valueAttr }) {
 }
 
 function getElementContent({ selector }) {
-	const matched = document.querySelector(selector)
+	const matched = document.querySelector(selector);
 	if (!matched) {
 		return null;
 	}
