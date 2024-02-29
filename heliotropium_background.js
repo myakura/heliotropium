@@ -1,18 +1,20 @@
 'use strict';
 
+// "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
+const RE_YYYYMMDD = /(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/;
+
+// "March 19th, 1984", "Mar. 19, 1984", etc.
+const RE_MONTH_DAY_YEAR = /(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i;
+
+// "19th March 1984", "19 Mar 1984", etc.
+const RE_DAY_MONTH_YEAR = /(?<day>\d{1,2})(st|nd|rd|th)?\s+(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<year>\d{4})/i;
+
 function isAcceptedDateYYYYMMDD(string) {
-	// e.g. "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
-	const re = /(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/;
-	return re.test(string);
+	return RE_YYYYMMDD.test(string);
 }
 
 function isAcceptedFuzzyDateString(string) {
-	// "March 19th, 1984", "Mar. 19, 1984", etc.
-	const reMonthDayYear = /(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i;
-	// "19th March 1984", "19 Mar 1984", etc.
-	const reDayMonthYear = /(?<day>\d{1,2})(st|nd|rd|th)?\s+(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<year>\d{4})/i;
-
-	return reMonthDayYear.test(string) || reDayMonthYear.test(string);
+	return RE_MONTH_DAY_YEAR.test(string) || RE_DAY_MONTH_YEAR.test(string);
 }
 
 function isAcceptedDate(string) {
@@ -20,9 +22,7 @@ function isAcceptedDate(string) {
 }
 
 function parseDateYYYYMMDD(dateString) {
-	// e.g. "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
-	const re = /(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/;
-	const { year, month, day } = re.exec(dateString).groups;
+	const { year, month, day } = RE_YYYYMMDD.exec(dateString).groups;
 	return {
 		year,
 		month: month.padStart(2, `0`),
@@ -35,12 +35,7 @@ function parseFuzzyDateString(dateString) {
 		jan: '1', feb: '2', mar: '3', apr: '4', may: '5', jun: '6',
 		jul: '7', aug: '8', sep: '9', oct: '10', nov: '11', dec: '12'
 	};
-	// "March 19th, 1984", "Mar. 19, 1984", etc.
-	const reMonthDayYear = /(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i;
-	// "19th March 1984", "19 Mar 1984", etc.
-	const reDayMonthYear = /(?<day>\d{1,2})(st|nd|rd|th)?\s+(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<year>\d{4})/i;
-
-	const regexes = [reMonthDayYear, reDayMonthYear];
+	const regexes = [RE_MONTH_DAY_YEAR, RE_DAY_MONTH_YEAR];
 	let match;
 	for (const regex of regexes) {
 		match = regex.exec(dateString);
