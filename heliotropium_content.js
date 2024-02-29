@@ -24,57 +24,50 @@ function isJsonLdArticle(object) {
 }
 
 function findDateFromJsonLd() {
-	let object = null;
-	let date = null;
-
-	const jsonLdScripts = [...document.querySelectorAll(`script[type="application/ld+json"]`)];
-	if (!jsonLdScripts.length) {
+	const scripts = [...document.querySelectorAll(`script[type="application/ld+json"]`)];
+	if (!scripts.length) {
+		console.log(`heliotropium: no JSON-LD scripts found.`);
 		return null;
 	}
-	console.log(`heliotropium: found JSON-LD scripts.`, jsonLdScripts);
+	console.log(`heliotropium: found JSON-LD scripts.`, scripts);
 
-	const parsedData = jsonLdScripts.map((script) => {
+	for (const script of scripts) {
 		try {
 			// technically invalid per spec, but there are sites putting
 			// unescaped newlines in JSON-LD scripts, so just remove them.
-			const scriptContent = script.textContent.replaceAll(`\n`, ``);
+			const content = script.textContent.replaceAll(`\n`, ``);
 			// FIXME: some sites even has `<!CDATA[...]]>` in script element :(
-			return JSON.parse(scriptContent);
-		} catch (error) {
-			return null;
-		}
-	}).filter((data) => {
-		return data !== null;
-	});
+			const data = JSON.parse(content);
 
-	for (const data of parsedData) {
-		// { "@type": "Article", "datePublished": "..." }
-		if (isJsonLdArticle(data) && hasJsonLdDateProperty(data)) {
-			object = data;
-			break;
-		}
-		// [{ "@type": "Article", "datePublished": "..." }]
-		// { "@graph": [{ "@type": "Article", "datePublished": "..." }] }
-		const arraysToCheck = [data, data?.['@graph']].filter(Array.isArray);
-		for (const array of arraysToCheck) {
-			const article = array.find((item) => {
-				return isJsonLdArticle(item) && hasJsonLdDateProperty(item);
-			});
-			if (article) {
-				object = article;
-				break;
+			// { "@type": "Article", "datePublished": "..." }
+			if (isJsonLdArticle(data) && hasJsonLdDateProperty(data)) {
+				const date = data.datePublished || data.uploadDate;
+				if (date) {
+					console.log(`heliotropium: found date "${date}" in`, data);
+					return date;
+				}
 			}
+
+			// [{ "@type": "Article", "datePublished": "..." }]
+			// { "@graph": [{ "@type": "Article", "datePublished": "..." }] }
+			const arraysToCheck = [data, data?.['@graph']].filter(Array.isArray);
+			for (const array of arraysToCheck) {
+				const article = array.find((item) => isJsonLdArticle(item) && hasJsonLdDateProperty(item));
+				if (article) {
+					const date = article.datePublished || article.uploadDate;
+					if (date) {
+						console.log(`heliotropium: found date "${date}" in`, article);
+						return date;
+					}
+				}
+			}
+		} catch (error) {
+			console.log(`heliotropium: error parsing JSON-LD script.`, error);
 		}
 	}
 
-	date = object?.datePublished || object?.uploadDate;
-	if (date) {
-		console.log(`heliotropium: found date "${date}" in`, object);
-	}
-	else {
-		console.log(`heliotropium: no date found in JSON-LD.`);
-	}
-	return date;
+	console.log(`heliotropium: no date found in JSON-LD.`);
+	return null;
 }
 
 function getAttrValue({ selector, valueAttr }) {
