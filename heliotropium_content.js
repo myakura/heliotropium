@@ -135,20 +135,19 @@ function findDate() {
 
 function handleMessage(message) {
 	console.log(`heliotropium: got a message.`, message);
-	if (!message) {
-		console.log(`heliotrpium: message is empty.`);
+
+	if (!message || message?.action !== `get-date`) {
+		console.log(`heliotropium: message is ${!message ? 'empty' : 'invalid'}.`);
 		return;
 	}
-	if (message?.action !== `get-date`) {
-		console.log(`heliotrpium: message is invalid.`);
-		return;
-	}
+
 	const date = findDate();
 	if (!date) {
 		console.log(`heliotropium: no date found.`);
 		return;
 	}
-	let response = { date };
+
+	const response = { date };
 	console.log(`heliotropium: sending back a response.`, response);
 	chrome.runtime.sendMessage(response);
 }
