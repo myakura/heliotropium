@@ -79,24 +79,22 @@ function findDateFromJsonLd() {
 
 function getAttrValue({ selector, valueAttr }) {
 	const qsaArgument = `${selector}[${valueAttr}]`;
-	const matched = [...document.querySelectorAll(qsaArgument)];
-	if (matched.length === 0) {
+	const matched = document.querySelector(qsaArgument);
+	if (!matched) {
 		return null;
 	}
-	const firstMatched = matched[0];
-	const value = firstMatched.getAttribute(valueAttr);
-	console.log(`heliotropium: found "${valueAttr}" value of "${value}" in`, firstMatched);
+	const value = matched.getAttribute(valueAttr);
+	console.log(`heliotropium: found "${valueAttr}" value of "${value}" in`, matched);
 	return value;
 }
 
 function getElementContent({ selector }) {
-	const matched = [...document.querySelectorAll(selector)];
-	if (matched.length === 0) {
+	const matched = document.querySelector(selector)
+	if (!matched) {
 		return null;
 	}
-	const firstMatched = matched[0];
-	const value = firstMatched.textContent.trim();
-	console.log(`heliotropium: found content of "${value}" in`, firstMatched);
+	const value = matched.textContent.trim();
+	console.log(`heliotropium: found content of "${value}" in`, matched);
 	return value;
 }
 
