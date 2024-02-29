@@ -10,7 +10,11 @@ const RE_MONTH_DAY_YEAR = /(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|
 const RE_DAY_MONTH_YEAR = /(?<day>\d{1,2})(st|nd|rd|th)?\s+(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<year>\d{4})/i;
 
 function parseDateYYYYMMDD(dateString) {
-	const { year, month, day } = RE_YYYYMMDD.exec(dateString).groups;
+	let match = RE_YYYYMMDD.exec(dateString);
+	if (!match) return null;
+
+	const { year, month, day } = match.groups;
+
 	return {
 		year,
 		month: month.padStart(2, `0`),
@@ -41,13 +45,11 @@ function parseFuzzyDateString(dateString) {
 }
 
 function parseDate(string) {
-	if (RE_YYYYMMDD.test(string)) {
-		return parseDateYYYYMMDD(string);
+	let parsedDate = parseDateYYYYMMDD(string);
+	if (!parsedDate) {
+		parsedDate = parseFuzzyDateString(string);
 	}
-	if (RE_MONTH_DAY_YEAR.test(string) || RE_DAY_MONTH_YEAR.test(string)) {
-		return parseFuzzyDateString(string);
-	}
-	return null;
+	return parsedDate;
 }
 
 function handleMessage(tabId, message) {
