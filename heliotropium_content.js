@@ -1,13 +1,5 @@
 'use strict';
 
-function findJsonLdScripts() {
-	const scripts = [...document.querySelectorAll(`script[type="application/ld+json"]`)];
-	if (scripts.length > 0) {
-		console.log(`heliotropium: found JSON-LD scripts.`, scripts);
-	}
-	return scripts;
-}
-
 function hasJsonLdDateProperty(object) {
 	const JSON_LD_DATE_PROPERTIES = [`datePublished`, `uploadDate`];
 	const hasDate = JSON_LD_DATE_PROPERTIES.some((property) => {
@@ -35,10 +27,11 @@ function findDateFromJsonLd() {
 	let object = null;
 	let date = null;
 
-	const jsonLdScripts = findJsonLdScripts();
-	if (jsonLdScripts.length === 0) {
-		return date;
+	const jsonLdScripts = [...document.querySelectorAll(`script[type="application/ld+json"]`)];
+	if (!jsonLdScripts.length) {
+		return null;
 	}
+	console.log(`heliotropium: found JSON-LD scripts.`, jsonLdScripts);
 
 	const parsedData = jsonLdScripts.map((script) => {
 		try {
