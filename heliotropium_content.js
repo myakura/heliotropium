@@ -1,7 +1,7 @@
 'use strict';
 
 function hasJsonLdDateProperty(object) {
-	const JSON_LD_DATE_PROPERTIES = [`datePublished`, `uploadDate`];
+	const JSON_LD_DATE_PROPERTIES = [`datePublished`];
 	const hasDate = JSON_LD_DATE_PROPERTIES.some((property) => property in object);
 	if (hasDate) {
 		console.log(`heliotropium: found JSON-LD date property.`, object);
@@ -36,8 +36,18 @@ function findDateFromJsonLd() {
 
 			// { "@type": "Article", "datePublished": "..." }
 			if (isJsonLdArticle(data) && hasJsonLdDateProperty(data)) {
-				const date = data.datePublished || data.uploadDate;
+				const date = data.datePublished;
 				if (date) {
+					console.log(`heliotropium: found date "${date}" in`, data);
+					return date;
+				}
+			}
+
+			// YouTube
+			// { "@type": "VideoObject", "uploadDate": "..." }
+			if (data?.[`@type`] === `VideoObject`) {
+				const date = data.uploadDate;
+				if (data) {
 					console.log(`heliotropium: found date "${date}" in`, data);
 					return date;
 				}
@@ -49,7 +59,7 @@ function findDateFromJsonLd() {
 			for (const array of arraysToCheck) {
 				const article = array.find((item) => isJsonLdArticle(item) && hasJsonLdDateProperty(item));
 				if (article) {
-					const date = article.datePublished || article.uploadDate;
+					const date = article.datePublished;
 					if (date) {
 						console.log(`heliotropium: found date "${date}" in`, article);
 						return date;
