@@ -91,6 +91,7 @@ function findDateFromDateElements() {
 	const dateElements = [
 		{ selector: `meta[property="article:published_time"]`, valueAttr: `content` },
 		{ selector: `meta[name="pubdate"]`, valueAttr: `content` },
+		{ selector: `meta[name="creation_date"]`, valueAttr: `content` },
 		{ selector: `meta[name="date"]`, valueAttr: `content` },
 		{ selector: `relative-time`, valueAttr: `datetime` },
 		{ selector: `time`, valueAttr: `datetime` },
