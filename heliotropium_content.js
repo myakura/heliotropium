@@ -3,9 +3,6 @@
 function hasJsonLdDateProperty(object) {
 	const JSON_LD_DATE_PROPERTIES = [`datePublished`];
 	const hasDate = JSON_LD_DATE_PROPERTIES.some((property) => property in object);
-	if (hasDate) {
-		console.log(`heliotropium: found JSON-LD date property.`, object);
-	}
 	return hasDate;
 }
 
@@ -118,6 +115,7 @@ function findDateFromDateElements() {
 }
 
 function findDateFromElementContent() {
+	// FIXME: sometimes `.date` is too generic and can be found in unrelated elements
 	const dateElements = ['time', '.date'];
 
 	for (const selector of dateElements) {
