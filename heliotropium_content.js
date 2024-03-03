@@ -10,7 +10,7 @@ function hasJsonLdDateProperty(object) {
 }
 
 function isJsonLdArticle(object) {
-	const ARTICLE_TYPE_SUFFIXES = [`Article`, `BlogPosting`];
+	const ARTICLE_TYPE_SUFFIXES = [`Article`, `BlogPosting`, `WebPage`];
 
 	// FIXME: `@type` can be an array of strings https://www.w3.org/TR/json-ld11/#example-15-specifying-multiple-types-for-a-node
 	const type = object?.[`@type`];
