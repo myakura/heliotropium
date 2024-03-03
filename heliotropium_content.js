@@ -14,15 +14,14 @@ function isJsonLdArticle(object) {
 	const type = object?.[`@type`];
 	const isArticle = ARTICLE_TYPE_SUFFIXES.some((suffix) => type?.endsWith(suffix));
 	if (isArticle) {
-		console.log(`heliotropium: found JSON-LD type.`, type);
+		console.log(`heliotropium: found JSON-LD type:`, type);
 	}
 	return isArticle;
 }
 
 function findDateFromJsonLd() {
 	const scripts = [...document.querySelectorAll(`script[type="application/ld+json"]`)];
-	if (!scripts.length) {
-		console.log(`heliotropium: no JSON-LD scripts found.`);
+	if (scripts.length === 0) {
 		return null;
 	}
 	console.log(`heliotropium: found JSON-LD scripts.`, scripts);
@@ -62,7 +61,6 @@ function findDateFromJsonLd() {
 		}
 	}
 
-	console.log(`heliotropium: no date found in JSON-LD.`);
 	return null;
 }
 
