@@ -115,8 +115,7 @@ function findDateFromDateElements() {
 }
 
 function findDateFromElementContent() {
-	// FIXME: sometimes `.date` is too generic and can be found in unrelated elements
-	const dateElements = ['time', '.date'];
+	const dateElements = ['time', 'div.date', 'span.date'];
 
 	for (const selector of dateElements) {
 		const value = getElementContent({ selector });
