@@ -47,7 +47,7 @@ function findDateFromJsonLd() {
 			// { "@type": "VideoObject", "uploadDate": "..." }
 			if (data?.[`@type`] === `VideoObject`) {
 				const date = data.uploadDate;
-				if (data) {
+				if (date) {
 					console.log(`heliotropium: found date "${date}" in`, data);
 					return date;
 				}
