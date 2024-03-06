@@ -9,10 +9,12 @@ function hasJsonLdDateProperty(object) {
 function isJsonLdArticle(object) {
 	const ARTICLE_TYPE_SUFFIXES = [`Article`, `BlogPosting`, `WebPage`];
 
-	// FIXME: `@type` can be an array of strings https://www.w3.org/TR/json-ld11/#example-15-specifying-multiple-types-for-a-node
 	const type = object?.[`@type`];
 
-	const isArticle = ARTICLE_TYPE_SUFFIXES.some((suffix) => type?.endsWith(suffix));
+	const isArticle = Array.isArray(type)
+		? type.some((t) => ARTICLE_TYPE_SUFFIXES.some((suffix) => t.endsWith(suffix)))
+		: ARTICLE_TYPE_SUFFIXES.some((suffix) => type?.endsWith(suffix));
+
 	if (isArticle) {
 		console.log(`heliotropium: found JSON-LD type:`, type);
 	}
