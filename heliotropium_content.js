@@ -129,7 +129,11 @@ function findDateFromElementContent() {
 }
 
 function findDate() {
-	const finders = [findDateFromJsonLd, findDateFromDateElements, findDateFromElementContent];
+	const finders = [
+		findDateFromJsonLd,
+		findDateFromDateElements,
+		findDateFromElementContent,
+	];
 
 	for (const finder of finders) {
 		const date = finder();
