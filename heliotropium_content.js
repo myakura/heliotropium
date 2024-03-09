@@ -76,24 +76,14 @@ function findDateFromJsonLd() {
 	return null;
 }
 
-function getAttrValue({ selector, valueAttr }) {
-	const qsaArgument = `${selector}[${valueAttr}]`;
-	const matched = document.querySelector(qsaArgument);
+function getValueFromElement({ selector, valueAttr = null }) {
+	const qsArgument = valueAttr ? `${selector}[${valueAttr}]` : selector;
+	const matched = document.querySelector(qsArgument);
 	if (!matched) {
 		return null;
 	}
-	const value = matched.getAttribute(valueAttr);
-	console.log(`heliotropium: found "${valueAttr}" value of "${value}" in`, matched);
-	return value;
-}
-
-function getElementContent({ selector }) {
-	const matched = document.querySelector(selector);
-	if (!matched) {
-		return null;
-	}
-	const value = matched.textContent.trim();
-	console.log(`heliotropium: found content of "${value}" in`, matched);
+	const value = valueAttr ? matched.getAttribute(valueAttr) : matched.textContent.trim();
+	console.log(`heliotropium: found ${valueAttr ? `"${valueAttr}" value of ` : ``}"${value}" in`, matched);
 	return value;
 }
 
@@ -108,7 +98,7 @@ function findDateFromDateElements() {
 	];
 
 	for (const { selector, valueAttr } of dateElements) {
-		const value = getAttrValue({ selector, valueAttr });
+		const value = getValueFromElement({ selector, valueAttr });
 		if (value) {
 			return value;
 		}
@@ -120,7 +110,7 @@ function findDateFromElementContent() {
 	const dateElements = ['time', 'div.date', 'span.date'];
 
 	for (const selector of dateElements) {
-		const value = getElementContent({ selector });
+		const value = getValueFromElement({ selector });
 		if (value) {
 			return value;
 		}
