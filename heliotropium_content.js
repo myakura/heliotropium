@@ -1,8 +1,8 @@
 'use strict';
 
 function hasJsonLdDateProperty(object) {
-	const JSON_LD_DATE_PROPERTIES = [`datePublished`];
-	const hasDate = JSON_LD_DATE_PROPERTIES.some((property) => property in object);
+	const DATE_PROPERTIES = [`datePublished`];
+	const hasDate = DATE_PROPERTIES.some((property) => property in object);
 	return hasDate;
 }
 
