@@ -101,7 +101,11 @@ function findDateFromDateElements() {
 }
 
 function findDateFromElementContent() {
-	const dateElements = ['time', 'div.date', 'span.date'];
+	const dateElements = [
+		{ selector: 'time' },
+		{ selector: 'div.date' },
+		{ selector: 'span.date' },
+	];
 
 	for (const selector of dateElements) {
 		const value = getValueFromElement({ selector });
