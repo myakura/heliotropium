@@ -1,14 +1,14 @@
 'use strict';
 
 function hasJsonLdDateProperty(object) {
-	const DATE_PROPERTIES = [`datePublished`];
+	const DATE_PROPERTIES = ['datePublished'];
 	const hasDate = DATE_PROPERTIES.some((property) => property in object);
 	return hasDate;
 }
 
 function isJsonLdArticle(object) {
-	const ARTICLE_TYPES = [`Article`, `BlogPosting`, `WebPage`];
-	const type = object?.[`@type`];
+	const ARTICLE_TYPES = ['Article', 'BlogPosting', 'WebPage'];
+	const type = object?.['@type'];
 	const isArticle = Array.isArray(type)
 		? type.some((t) => ARTICLE_TYPES.some((suffix) => t.endsWith(suffix)))
 		: ARTICLE_TYPES.some((suffix) => type?.endsWith(suffix));
@@ -16,17 +16,17 @@ function isJsonLdArticle(object) {
 }
 
 function findDateFromJsonLd() {
-	const scripts = [...document.querySelectorAll(`script[type="application/ld+json"]`)];
+	const scripts = [...document.querySelectorAll('script[type="application/ld+json"]')];
 	if (scripts.length === 0) {
 		return null;
 	}
-	console.log(`heliotropium: found JSON-LD scripts.`, scripts);
+	console.log('heliotropium: found JSON-LD scripts.', scripts);
 
 	for (const script of scripts) {
 		try {
 			// technically invalid per spec, but there are sites putting
 			// unescaped newlines in JSON-LD scripts, so just remove them.
-			const content = script.textContent.replaceAll(`\n`, ``);
+			const content = script.textContent.replaceAll('\n', '');
 			// FIXME: some sites even has `<!CDATA[...]]>` in script element :(
 			const data = JSON.parse(content);
 
@@ -41,7 +41,7 @@ function findDateFromJsonLd() {
 
 			// YouTube
 			// { "@type": "VideoObject", "uploadDate": "..." }
-			if (data?.[`@type`] === `VideoObject`) {
+			if (data?.['@type'] === 'VideoObject') {
 				const date = data.uploadDate;
 				if (date) {
 					console.log(`heliotropium: found date "${date}" in`, data);
@@ -63,7 +63,7 @@ function findDateFromJsonLd() {
 				}
 			}
 		} catch (error) {
-			console.log(`heliotropium: error parsing JSON-LD script.`, error);
+			console.log('heliotropium: error parsing JSON-LD script.', error);
 		}
 	}
 
@@ -83,12 +83,12 @@ function getValueFromElement({ selector, valueAttr = null }) {
 
 function findDateFromDateElements() {
 	const dateElements = [
-		{ selector: `meta[property="article:published_time"]`, valueAttr: `content` },
-		{ selector: `meta[name="pubdate"]`, valueAttr: `content` },
-		{ selector: `meta[name="creation_date"]`, valueAttr: `content` },
-		{ selector: `meta[name="date"]`, valueAttr: `content` },
-		{ selector: `relative-time`, valueAttr: `datetime` },
-		{ selector: `time`, valueAttr: `datetime` },
+		{ selector: 'meta[property="article:published_time"]', valueAttr: 'content' },
+		{ selector: 'meta[name="pubdate"]', valueAttr: 'content' },
+		{ selector: 'meta[name="creation_date"]', valueAttr: 'content' },
+		{ selector: 'meta[name="date"]', valueAttr: 'content' },
+		{ selector: 'relative-time', valueAttr: 'datetime' },
+		{ selector: 'time', valueAttr: 'datetime' },
 	];
 
 	for (const { selector, valueAttr } of dateElements) {
@@ -133,21 +133,21 @@ function findDate() {
 }
 
 function handleMessage(message) {
-	console.log(`heliotropium: got a message.`, message);
+	console.log('heliotropium: got a message.', message);
 
-	if (!message || message?.action !== `get-date`) {
+	if (!message || message?.action !== 'get-date') {
 		console.log(`heliotropium: message is ${!message ? 'empty' : 'invalid'}.`);
 		return;
 	}
 
 	const date = findDate();
 	if (!date) {
-		console.log(`heliotropium: no date found.`);
+		console.log('heliotropium: no date found.');
 		return;
 	}
 
 	const response = { date };
-	console.log(`heliotropium: sending back a response.`, response);
+	console.log('heliotropium: sending back a response.', response);
 	chrome.runtime.sendMessage(response);
 }
 
