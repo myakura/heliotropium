@@ -17,10 +17,14 @@ function parseDateYYYYMMDD(dateString) {
 }
 
 function parseFuzzyDateString(dateString) {
-	// "March 19th, 1984", "Mar. 19, 1984", etc.
+	// matches month-day-year patterns
+	// e.g. "March 19th, 1984", "Mar. 19, 1984", etc.
 	const RE_MONTH_DAY_YEAR = /(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i;
-	// "19th March 1984", "19 Mar 1984", etc.
+
+	// matches day-month-year patterns
+	// e.g. "19th March 1984", "19 Mar 1984"
 	const RE_DAY_MONTH_YEAR = /(?<day>\d{1,2})(st|nd|rd|th)?\s+(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<year>\d{4})/i;
+
 	const regexes = [RE_MONTH_DAY_YEAR, RE_DAY_MONTH_YEAR];
 
 	const monthsMap = {
