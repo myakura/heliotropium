@@ -24,10 +24,11 @@ function findDateFromJsonLd() {
 
 	for (const script of scripts) {
 		try {
-			// technically invalid per spec, but there are sites putting
+			// yet being invalid per JSON spec, but there are sites putting
 			// unescaped newlines in JSON-LD scripts, so just remove them.
 			const content = script.textContent.replaceAll('\n', '');
 			// FIXME: some sites even has `<!CDATA[...]]>` in script element :(
+
 			const data = JSON.parse(content);
 
 			// { "@type": "Article", "datePublished": "..." }
