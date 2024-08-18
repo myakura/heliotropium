@@ -134,8 +134,13 @@ function findDate() {
 function handleMessage(message) {
 	console.log('heliotropium: got a message.', message);
 
-	if (!message || message?.action !== 'get-date') {
-		console.log(`heliotropium: message is ${!message ? 'empty' : 'invalid'}.`);
+	if (!message) {
+		console.log('heliotropium: message is empty.');
+		return;
+	}
+
+	if (message?.action !== 'get-date') {
+		console.log(`heliotropium: non-supported action '${message?.action}'.`);
 		return;
 	}
 
