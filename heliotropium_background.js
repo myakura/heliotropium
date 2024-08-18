@@ -49,11 +49,8 @@ function parseFuzzyDateString(dateString) {
 }
 
 function parseDate(string) {
-	let parsedDate = parseDateYYYYMMDD(string);
-	if (!parsedDate) {
-		parsedDate = parseFuzzyDateString(string);
-	}
-	return parsedDate;
+	const result = parseDateYYYYMMDD(string) ?? parseFuzzyDateString(string);
+	return result;
 }
 
 function handleMessage(tabId, message) {
