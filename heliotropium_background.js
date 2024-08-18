@@ -56,18 +56,19 @@ function parseDate(string) {
 function handleMessage(tabId, message) {
 	const { date } = message;
 	const parsedDate = parseDate(date);
-	if (parsedDate) {
-		const { year, month, day } = parsedDate;
-		updateBrowserAction({
-			tabId,
-			enabled: true,
-			badgeText: `${month}${day}`,
-			title: `${year}-${month}-${day}`,
-		});
-	} else {
+
+	if (!parsedDate) {
 		console.log('date unavailable.');
 		updateBrowserAction({ tabId });
 	}
+
+	const { year, month, day } = parsedDate;
+	updateBrowserAction({
+		tabId,
+		enabled: true,
+		badgeText: `${month}${day}`,
+		title: `${year}-${month}-${day}`,
+	});
 }
 
 function getTabInfo(tabId, callback) {
