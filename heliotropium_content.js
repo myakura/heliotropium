@@ -17,9 +17,8 @@ function isJsonLdArticle(object) {
 
 function findDateFromJsonLd() {
 	const scripts = [...document.querySelectorAll('script[type="application/ld+json"]')];
-	if (scripts.length === 0) {
-		return null;
-	}
+	if (scripts.length === 0) return null;
+
 	console.log('heliotropium: found JSON-LD scripts.', scripts);
 
 	for (const script of scripts) {
@@ -74,9 +73,8 @@ function findDateFromJsonLd() {
 function getValueFromElement({ selector, valueAttr = null }) {
 	const qsArgument = valueAttr ? `${selector}[${valueAttr}]` : selector;
 	const matched = document.querySelector(qsArgument);
-	if (!matched) {
-		return null;
-	}
+	if (!matched) return null;
+
 	const value = valueAttr ? matched.getAttribute(valueAttr) : matched.textContent.trim();
 	console.log(`heliotropium: found ${valueAttr ? `"${valueAttr}" value of ` : ``}"${value}" in`, matched);
 	return value;
