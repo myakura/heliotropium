@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Heliotropium",
-	"version": "0.15.6",
+	"version": "0.15.7",
 	"description": "Check out the date of the page",
 	"icons": {
 		"48": "icons/icon_gray.png",
@@ -37,7 +37,10 @@
 				"*.jxl",
 				"*.mp4",
 				"*.webm",
-				"*.pdf"
+				"*.pdf",
+				"*.atom",
+				"*.rss",
+				"*.rdf"
 			],
 			"js": ["heliotropium_content.js"]
 		}
