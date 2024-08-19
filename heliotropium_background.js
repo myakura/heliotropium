@@ -63,10 +63,11 @@ function handleMessage(tabId, message) {
 	}
 
 	const { year, month, day } = parsedDate;
+	let monthDay = `${Number(month)}/${Number(day)}`;
 	updateBrowserAction({
 		tabId,
 		enabled: true,
-		badgeText: `${month}${day}`,
+		badgeText: monthDay.length < 5 ? monthDay : monthDay.replace('/', ''),
 		title: `${year}-${month}-${day}`,
 	});
 }
