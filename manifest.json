@@ -48,5 +48,11 @@
 	"browser_action": {
 		"default_icon": "icons/icon_gray.png"
 	},
-	"permissions": ["tabs"]
+	"permissions": ["tabs"],
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "{cf75506a-2c8d-4c0c-9515-9cb34297ad37}",
+			"strict_min_version": "121.0"
+		}
+	}
 }
