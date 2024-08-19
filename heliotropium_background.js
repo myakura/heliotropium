@@ -71,27 +71,45 @@ function handleMessage(tabId, message) {
 	});
 }
 
-function getTabInfo(tabId, callback) {
-	if (!tabId) {
-		console.log('no tab with', tabId);
-		return;
-	}
+function getTabInfo(tabId) {
+	const { promise, resolve, reject } = Promise.withResolvers();
 	chrome.tabs.get(tabId, (tab) => {
 		if (chrome.runtime.lastError) {
-			console.error(chrome.runtime.lastError.message);
-		} else {
-			console.log('about tab', tab.id, tab);
-			callback(tab);
+			reject(chrome.runtime.lastError.message);
 		}
+		resolve(tab);
 	});
+
+	return promise;
 }
 
-function sendGetDate(tab) {
-	const { id: tabId, active, url, status } = tab;
-	if (active && url.startsWith('http') && status === 'complete') {
-		console.log('tab', tabId, 'is ready. sending message...');
-		chrome.tabs.sendMessage(tabId, { action: 'get-date' });
+async function isTabReady({ tab = null, tabId = null }) {
+	if (!tab && !tabId) {
+		console.log('No `tab` nor `tabId` available');
+		return false;
 	}
+	if (!tab && tabId) {
+		console.log(`fetching tab info: ${tabId}`);
+		tab = await getTabInfo(tabId);
+	}
+
+	console.log('tab', tab);
+	const { active, url, status } = tab;
+
+	if (!active) {
+		console.log('Tab is not active.');
+		return false;
+	}
+	if (!url.startsWith('http')) {
+		console.log('Tab is not a web page.');
+		return false;
+	}
+	if (status !== 'complete') {
+		console.log(`Tab hasn't finished loading.`);
+		return false;
+	}
+
+	return true;
 }
 
 function updateBrowserAction({
@@ -113,14 +131,32 @@ function updateBrowserAction({
 	chrome.browserAction.setTitle({ tabId, title });
 }
 
-chrome.tabs.onActivated.addListener(({ tabId }) => {
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 	console.log('tab activated', tabId);
-	getTabInfo(tabId, sendGetDate);
+
+	if (!await isTabReady({ tabId })) {
+		console.log('tab not ready.');
+		return;
+	}
+
+	chrome.tabs.sendMessage(tabId, { action: 'get-date' }, (response) => {
+		console.log('got response from tab', tabId, response);
+		handleMessage(tabId, response);
+	});
 });
 
-chrome.tabs.onUpdated.addListener((tabId) => {
+chrome.tabs.onUpdated.addListener(async (tabId) => {
 	console.log('tab updated', tabId);
-	getTabInfo(tabId, sendGetDate);
+
+	if (!await isTabReady({ tabId })) {
+		console.log('tab not ready.');
+		return;
+	}
+
+	chrome.tabs.sendMessage(tabId, { action: 'get-date' }, (response) => {
+		console.log('got response from tab', tabId, response);
+		handleMessage(tabId, response);
+	});
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
