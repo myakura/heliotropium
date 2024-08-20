@@ -58,7 +58,7 @@ function handleMessage(tabId, message) {
 	const parsedDate = parseDate(date);
 
 	if (!parsedDate) {
-		console.log('date unavailable.');
+		console.log('Date unavailable.');
 		updateBrowserAction({ tabId });
 	}
 
@@ -90,7 +90,7 @@ async function isTabReady({ tab = null, tabId = null }) {
 		return false;
 	}
 	if (!tab && tabId) {
-		console.log(`fetching tab info: ${tabId}`);
+		console.log(`Fetching tab info: ${tabId}`);
 		tab = await getTabInfo(tabId);
 	}
 
@@ -106,7 +106,7 @@ async function isTabReady({ tab = null, tabId = null }) {
 		return false;
 	}
 	if (status !== 'complete') {
-		console.log(`Tab hasn't finished loading.`);
+		console.log('Tab is not finished loading.');
 		return false;
 	}
 
@@ -133,36 +133,36 @@ function updateBrowserAction({
 }
 
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
-	console.log('tab activated', tabId);
+	console.log('Tab activated', tabId);
 
 	if (!await isTabReady({ tabId })) {
-		console.log('tab not ready.');
+		console.log('Tab is not ready.');
 		return;
 	}
 
 	chrome.tabs.sendMessage(tabId, { action: 'get-date' }, (response) => {
-		console.log('got response from tab', tabId, response);
+		console.log('Got response from tab', tabId, response);
 		handleMessage(tabId, response);
 	});
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId) => {
-	console.log('tab updated', tabId);
+	console.log('Tab updated', tabId);
 
 	if (!await isTabReady({ tabId })) {
-		console.log('tab not ready.');
+		console.log('Tab is not ready.');
 		return;
 	}
 
 	chrome.tabs.sendMessage(tabId, { action: 'get-date' }, (response) => {
-		console.log('got response from tab', tabId, response);
+		console.log('Got response from tab', tabId, response);
 		handleMessage(tabId, response);
 	});
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
 	const { id: tabId, title: tabTitle, url: tabUrl } = sender.tab;
-	console.group('got a message from tab', tabId);
+	console.group('Got a message from tab', tabId);
 	console.log('title:', tabTitle);
 	console.log('url:', tabUrl);
 	console.log('message:', message);
