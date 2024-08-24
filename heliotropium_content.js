@@ -76,7 +76,7 @@ function getValueFromElement({ selector, valueAttr = null }) {
 	if (!matched) return null;
 
 	const value = (valueAttr ? matched.getAttribute(valueAttr) : matched.textContent).trim();
-	console.log(`heliotropium: found ${valueAttr ? `"${valueAttr}" value of ` : ``}"${value}" in`, matched);
+	console.log(`heliotropium: found ${valueAttr ? `"${valueAttr}" value of ` : ''}"${value}" in`, matched);
 	return value;
 }
 
