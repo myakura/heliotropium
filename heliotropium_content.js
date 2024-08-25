@@ -131,7 +131,7 @@ function findDate() {
 	return null;
 }
 
-function handleMessage(message) {
+function handleMessage(message, sender, sendResponse) {
 	console.log('heliotropium: got a message.', message);
 
 	if (!message) {
@@ -152,7 +152,7 @@ function handleMessage(message) {
 
 	const response = { date };
 	console.log('heliotropium: sending back a response.', response);
-	chrome.runtime.sendMessage(response);
+	sendResponse(response);
 }
 
 chrome.runtime.onMessage.addListener(handleMessage);
