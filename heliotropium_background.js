@@ -54,6 +54,13 @@ function parseDate(string) {
 }
 
 function handleMessage(tabId, message) {
+	console.log('Got a message from tab', tabId, message);
+	if (!message) {
+		console.log('Message is empty.');
+		updateBrowserAction({ tabId });
+		return;
+	}
+
 	const { date } = message;
 	const parsedDate = parseDate(date);
 
