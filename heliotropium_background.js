@@ -142,7 +142,8 @@ function updateBrowserAction({
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 	console.log('Tab activated', tabId);
 
-	if (!await isTabReady({ tabId })) {
+	const tabReady = await isTabReady({ tabId });
+	if (!tabReady) {
 		console.log('Tab is not ready.');
 		return;
 	}
@@ -156,7 +157,8 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 chrome.tabs.onUpdated.addListener(async (tabId) => {
 	console.log('Tab updated', tabId);
 
-	if (!await isTabReady({ tabId })) {
+	const tabReady = await isTabReady({ tabId });
+	if (!tabReady) {
 		console.log('Tab is not ready.');
 		return;
 	}
