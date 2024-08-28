@@ -131,7 +131,7 @@ function findDate() {
 	return null;
 }
 
-function handleMessage(message, sender, sendResponse) {
+function handleGetDate(message, sender, sendResponse) {
 	console.log('heliotropium: got a message.', message);
 
 	if (!message) {
@@ -155,4 +155,4 @@ function handleMessage(message, sender, sendResponse) {
 	sendResponse(response);
 }
 
-chrome.runtime.onMessage.addListener(handleMessage);
+chrome.runtime.onMessage.addListener(handleGetDate);

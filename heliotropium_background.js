@@ -53,7 +53,7 @@ function parseDate(string) {
 	return result;
 }
 
-function handleMessage(tabId, message) {
+function handleGetDate(tabId, message) {
 	console.log('Got a message from tab', tabId, message);
 	if (!message) {
 		console.log('Message is empty.');
@@ -96,11 +96,11 @@ async function isTabReady({ tab = null, tabId = null }) {
 		console.log('No `tab` nor `tabId` available');
 		return false;
 	}
+
 	if (!tab && tabId) {
-		console.log(`Fetching tab info: ${tabId}`);
+		console.log(`Fetching tab: ${tabId}`);
 		tab = await getTabInfo(tabId);
 	}
-
 	console.log('tab', tab);
 	const { active, url, status } = tab;
 
@@ -149,8 +149,8 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 	}
 
 	chrome.tabs.sendMessage(tabId, { action: 'get-date' }, (response) => {
-		console.log('Got response from tab', tabId, response);
-		handleMessage(tabId, response);
+		console.log('Got the `get-date` response from tab', tabId, response);
+		handleGetDate(tabId, response);
 	});
 });
 
@@ -164,8 +164,8 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 	}
 
 	chrome.tabs.sendMessage(tabId, { action: 'get-date' }, (response) => {
-		console.log('Got response from tab', tabId, response);
-		handleMessage(tabId, response);
+		console.log('Got the `get-date` response from tab', tabId, response);
+		handleGetDate(tabId, response);
 	});
 });
 
@@ -177,5 +177,5 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 	console.log('message:', message);
 	console.groupEnd();
 
-	handleMessage(tabId, message);
+	handleGetDate(tabId, message);
 });
