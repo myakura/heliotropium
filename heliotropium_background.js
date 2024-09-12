@@ -61,6 +61,13 @@ function handleGetDate(tabId, message) {
 		return;
 	}
 
+	if (message.date === undefined) {
+		console.log('Date is unavailable.');
+		updateBrowserAction({ tabId });
+		return;
+	}
+
+	console.log('Parsing date:', message.date);
 	const { date } = message;
 	const parsedDate = parseDate(date);
 
@@ -68,7 +75,9 @@ function handleGetDate(tabId, message) {
 		console.log('Date unavailable.');
 		updateBrowserAction({ tabId });
 	}
+	console.log('Parsed date:', parsedDate);
 
+	console.log('Updating browser action:', tabId);
 	const { year, month, day } = parsedDate;
 	let monthDay = `${Number(month)}/${Number(day)}`;
 	updateBrowserAction({
@@ -98,10 +107,11 @@ async function isTabReady({ tab = null, tabId = null }) {
 	}
 
 	if (!tab && tabId) {
-		console.log(`Fetching tab: ${tabId}`);
+		console.log('Fetching tab', tabId);
 		tab = await getTabInfo(tabId);
 	}
-	console.log('tab', tab);
+	console.log('Fetched tab', tab.id, tab);
+
 	const { active, url, status } = tab;
 
 	if (!active) {
@@ -113,7 +123,7 @@ async function isTabReady({ tab = null, tabId = null }) {
 		return false;
 	}
 	if (status !== 'complete') {
-		console.log('Tab is not finished loading.');
+		console.log('Tab has not finished loading.');
 		return false;
 	}
 
@@ -144,10 +154,11 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 
 	const tabReady = await isTabReady({ tabId });
 	if (!tabReady) {
-		console.log('Tab is not ready.');
+		console.log('Tab is not ready.', tabId);
 		return;
 	}
 
+	console.log('Sending `get-date` message to tab', tabId);
 	chrome.tabs.sendMessage(tabId, { action: 'get-date' }, (response) => {
 		console.log('Got the `get-date` response from tab', tabId, response);
 		handleGetDate(tabId, response);
@@ -159,10 +170,11 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 
 	const tabReady = await isTabReady({ tabId });
 	if (!tabReady) {
-		console.log('Tab is not ready.');
+		console.log('Tab is not ready.', tabId);
 		return;
 	}
 
+	console.log('Sending `get-date` message to tab', tabId);
 	chrome.tabs.sendMessage(tabId, { action: 'get-date' }, (response) => {
 		console.log('Got the `get-date` response from tab', tabId, response);
 		handleGetDate(tabId, response);
