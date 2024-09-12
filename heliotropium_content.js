@@ -150,7 +150,7 @@ function handleGetDate(message, sender, sendResponse) {
 		return;
 	}
 
-	const response = { date };
+	const response = { date, url: location.href };
 	console.log('heliotropium: sending back a response.', response);
 	sendResponse(response);
 }
