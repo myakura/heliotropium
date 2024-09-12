@@ -181,6 +181,10 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 	});
 });
 
+chrome.tabs.onHighlighted.addListener(async ({ tabIds }) => {
+	console.log('Tab highlighted', tabIds);
+});
+
 chrome.runtime.onMessage.addListener((message, sender) => {
 	const { id: tabId, title: tabTitle, url: tabUrl } = sender.tab;
 	console.group('Got a message from tab', tabId);
