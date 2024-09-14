@@ -77,7 +77,6 @@ function handleGetDate(tabId, message) {
 	}
 	console.log('Parsed date:', parsedDate);
 
-	console.log('Updating browser action:', tabId);
 	const { year, month, day } = parsedDate;
 	let monthDay = `${Number(month)}/${Number(day)}`;
 	updateBrowserAction({
@@ -86,6 +85,7 @@ function handleGetDate(tabId, message) {
 		badgeText: monthDay.length < 5 ? monthDay : monthDay.replace('/', ''),
 		title: `${year}-${month}-${day}`,
 	});
+	console.log('Updated badge:', monthDay);
 }
 
 function getTabInfo(tabId) {
