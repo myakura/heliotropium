@@ -102,7 +102,7 @@ function getTabInfo(tabId) {
 
 async function isTabReady({ tab = null, tabId = null }) {
 	if (!tab && !tabId) {
-		console.log('No `tab` nor `tabId` available');
+		console.log('No `tab` nor `tabId` provided.');
 		return false;
 	}
 
@@ -110,20 +110,20 @@ async function isTabReady({ tab = null, tabId = null }) {
 		console.log('Fetching tab', tabId);
 		tab = await getTabInfo(tabId);
 	}
-	console.log('Fetched tab', tab.id, tab);
+	console.log('Fetched tab', tabId, tab);
 
 	const { active, url, status } = tab;
 
 	if (!active) {
-		console.log('Tab is not active.');
+		console.log('Tab', tabId, 'is not active.');
 		return false;
 	}
 	if (!url.startsWith('http')) {
-		console.log('Tab is not a web page.');
+		console.log('Tab', tabId, 'is not a web page.');
 		return false;
 	}
 	if (status !== 'complete') {
-		console.log('Tab has not finished loading.');
+		console.log('Tab', tabId, 'has not finished loading.');
 		return false;
 	}
 
