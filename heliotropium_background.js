@@ -154,7 +154,7 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 
 	const tabReady = await isTabReady({ tabId });
 	if (!tabReady) {
-		console.log('Tab is not ready.', tabId);
+		// console.log('Tab is not ready.', tabId);
 		return;
 	}
 
@@ -170,7 +170,7 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 
 	const tabReady = await isTabReady({ tabId });
 	if (!tabReady) {
-		console.log('Tab is not ready.', tabId);
+		// console.log('Tab is not ready.', tabId);
 		return;
 	}
 
