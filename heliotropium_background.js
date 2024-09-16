@@ -149,6 +149,17 @@ function updateBrowserAction({
 	chrome.browserAction.setTitle({ tabId, title });
 }
 
+async function sendMessageToTab(tabId, message) {
+	const { promise, resolve, reject } = Promise.withResolvers();
+	chrome.tabs.sendMessage(tabId, message, (response) => {
+		if (chrome.runtime.lastError) {
+			reject(chrome.runtime.lastError.message);
+		}
+		resolve(response);
+	});
+	return promise;
+}
+
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 	console.log('Tab activated', tabId);
 
@@ -159,10 +170,9 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 	}
 
 	console.log('Sending `get-date` message to tab', tabId);
-	chrome.tabs.sendMessage(tabId, { action: 'get-date' }, (response) => {
-		console.log('Got the `get-date` response from tab', tabId, response);
-		handleGetDate(tabId, response);
-	});
+	const response = await sendMessageToTab(tabId, { action: 'get-date' });
+	console.log('Got the `get-date` response from tab', tabId, response);
+	handleGetDate(tabId, response);
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId) => {
@@ -175,10 +185,9 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 	}
 
 	console.log('Sending `get-date` message to tab', tabId);
-	chrome.tabs.sendMessage(tabId, { action: 'get-date' }, (response) => {
-		console.log('Got the `get-date` response from tab', tabId, response);
-		handleGetDate(tabId, response);
-	});
+	const response = await sendMessageToTab(tabId, { action: 'get-date' });
+	console.log('Got the `get-date` response from tab', tabId, response);
+	handleGetDate(tabId, response);
 });
 
 chrome.tabs.onHighlighted.addListener(async ({ tabIds }) => {
