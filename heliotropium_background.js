@@ -74,10 +74,12 @@ function handleGetDate(tabId, message) {
 	if (!parsedDate) {
 		console.log('Date unavailable.');
 		updateBrowserAction({ tabId });
+		return;
 	}
-	console.log('Parsed date:', parsedDate);
 
+	console.log('Parsed date:', parsedDate);
 	const { year, month, day } = parsedDate;
+
 	let monthDay = `${Number(month)}/${Number(day)}`;
 	updateBrowserAction({
 		tabId,
