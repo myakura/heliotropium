@@ -1,17 +1,17 @@
 'use strict';
 
-const dataCache = new Map();
+const tabDataStore = new Map();
 
-function logCache() {
-	console.group(`Current cache: ${dataCache.size} items`);
-	for (const [url, data] of dataCache) {
+function logDataStore() {
+	console.group(`Current data store: ${tabDataStore.size} items`);
+	for (const [url, data] of tabDataStore) {
 		const { tabId, date } = data;
 		console.log({ tabId, url, date });
 	}
 	console.groupEnd();
 }
 
-logCache();
+logDataStore();
 
 function parseYYYYMMDD(dateString) {
 	// "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
@@ -75,7 +75,7 @@ function handleGetDate(tabId, message) {
 		return;
 	}
 
-	dataCache.set(message.url, { tabId, ...message });
+	tabDataStore.set(message.url, { tabId, ...message });
 
 	if (message.date === undefined) {
 		console.log('Date is unavailable.');
@@ -210,7 +210,7 @@ async function processTabData(tabId) {
 	const tab = await getTab(tabId);
 	if (!tab) return null;
 
-	const cachedData = dataCache.get(tab.url);
+	const cachedData = tabDataStore.get(tab.url);
 	if (cachedData) {
 		console.log('Using cached data for', tabId, cachedData);
 		return cachedData;
@@ -225,7 +225,7 @@ async function fetchTabDateFromContentScript(tabId) {
 
 	if (response) {
 		console.log('Received date from content script:', response);
-		dataCache.set(response.url, { tabId, ...response });
+		tabDataStore.set(response.url, { tabId, ...response });
 		return response;
 	}
 
@@ -243,7 +243,7 @@ chrome.tabs.onUpdated.addListener((tabId) => {
 
 chrome.tabs.onHighlighted.addListener(({ tabIds }) => {
 	console.log('Tabs highlighted', tabIds);
-	logCache();
+	logDataStore();
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
