@@ -1,5 +1,18 @@
 'use strict';
 
+const dataCache = new Map();
+
+function logCache() {
+	console.group(`Current cache: ${dataCache.size} items`);
+	for (const [url, data] of dataCache) {
+		const { tabId, date } = data;
+		console.log({ tabId, url, date });
+	}
+	console.groupEnd();
+}
+
+logCache();
+
 function parseYYYYMMDD(dateString) {
 	// "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
 	const RE_YYYYMMDD = /(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/;
@@ -55,11 +68,14 @@ function parseDate(string) {
 
 function handleGetDate(tabId, message) {
 	console.log('Got a message from tab', tabId, message);
+
 	if (!message) {
 		console.log('Message is empty.');
 		updateBrowserAction({ tabId });
 		return;
 	}
+
+	dataCache.set(message.url, { tabId, ...message });
 
 	if (message.date === undefined) {
 		console.log('Date is unavailable.');
@@ -196,6 +212,7 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 
 chrome.tabs.onHighlighted.addListener(async ({ tabIds }) => {
 	console.log('Tabs highlighted', tabIds);
+	logCache();
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
