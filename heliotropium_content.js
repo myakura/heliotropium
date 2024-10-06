@@ -132,8 +132,7 @@ function findDateInsideHashTarget() {
 	for (const { selector, valueAttr } of dateElements) {
 		const value = getValueFromElement({ selector, valueAttr, scope: target });
 		if (value) {
-			console.log(`heliotropium: Found date "${value}" inside hash target`, target);
-
+			console.log(`heliotropium: found date "${value}" inside hash target`, target);
 			return value;
 		}
 	}
