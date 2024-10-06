@@ -70,9 +70,9 @@ function findDateFromJsonLd() {
 	return null;
 }
 
-function getValueFromElement({ selector, valueAttr = null }) {
+function getValueFromElement({ selector, valueAttr = null, scope = document }) {
 	const qsArgument = valueAttr ? `${selector}[${valueAttr}]` : selector;
-	const matched = document.querySelector(qsArgument);
+	const matched = scope.querySelector(qsArgument);
 	if (!matched) return null;
 
 	const value = (valueAttr ? matched.getAttribute(valueAttr) : matched.textContent).trim();
@@ -115,8 +115,34 @@ function findDateFromElementContent() {
 	return null;
 }
 
+
+function findDateInsideHashTarget() {
+	const hash = location.hash;
+	const target = hash !== '' ? document.querySelector(hash) : null;
+	if (!target) return null;
+
+	const dateElements = [
+		{ selector: 'relative-time[datetime]', valueAttr: 'datetime' },
+		{ selector: 'time[datetime]', valueAttr: 'datetime' },
+		{ selector: 'time' },
+		{ selector: 'div.date' },
+		{ selector: 'span.date' },
+	];
+
+	for (const { selector, valueAttr } of dateElements) {
+		const value = getValueFromElement({ selector, valueAttr, scope: target });
+		if (value) {
+			console.log(`heliotropium: Found date "${value}" inside.`);
+
+			return value;
+		}
+	}
+	return null;
+}
+
 function findDate() {
 	const finders = [
+		findDateInsideHashTarget,
 		findDateFromJsonLd,
 		findDateFromDateElements,
 		findDateFromElementContent,
