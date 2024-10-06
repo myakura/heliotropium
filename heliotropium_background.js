@@ -195,7 +195,7 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 });
 
 chrome.tabs.onHighlighted.addListener(async ({ tabIds }) => {
-	console.log('Tab highlighted', tabIds);
+	console.log('Tabs highlighted', tabIds);
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
