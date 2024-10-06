@@ -162,7 +162,7 @@ function updateBrowserAction({
 		? window.matchMedia('(prefers-color-scheme: light)').matches
 			? 'icons/icon_black.png'
 			: 'icons/icon_white.png'
-		: 'icons/icon_gray.png';
+		: 'icons/icon_lightgray.png';
 	chrome.browserAction[method](tabId);
 	chrome.browserAction.setIcon({ tabId, path: icon });
 	chrome.browserAction.setBadgeText({ tabId, text: badgeText });
