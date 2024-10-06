@@ -1,6 +1,6 @@
 'use strict';
 
-function parseDateYYYYMMDD(dateString) {
+function parseYYYYMMDD(dateString) {
 	// "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
 	const RE_YYYYMMDD = /(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/;
 
@@ -16,7 +16,7 @@ function parseDateYYYYMMDD(dateString) {
 	};
 }
 
-function parseFuzzyDateString(dateString) {
+function parseFuzzyDate(dateString) {
 	// matches month-day-year patterns
 	// e.g. "March 19th, 1984", "Mar. 19, 1984", etc.
 	const RE_MONTH_DAY_YEAR = /(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i;
@@ -49,7 +49,7 @@ function parseFuzzyDateString(dateString) {
 }
 
 function parseDate(string) {
-	const result = parseDateYYYYMMDD(string) ?? parseFuzzyDateString(string);
+	const result = parseYYYYMMDD(string) ?? parseFuzzyDate(string);
 	return result;
 }
 
@@ -93,7 +93,7 @@ function handleGetDate(tabId, message) {
 	console.log('Updated badge:', badgeText);
 }
 
-function getTabInfo(tabId) {
+function getTab(tabId) {
 	const { promise, resolve, reject } = Promise.withResolvers();
 	chrome.tabs.get(tabId, (tab) => {
 		if (chrome.runtime.lastError) {
@@ -113,7 +113,7 @@ async function isTabReady({ tab = null, tabId = null }) {
 
 	if (!tab && tabId) {
 		console.log('Fetching tab', tabId);
-		tab = await getTabInfo(tabId);
+		tab = await getTab(tabId);
 	}
 	console.log('Fetched tab', tabId, tab);
 
