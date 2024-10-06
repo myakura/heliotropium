@@ -193,7 +193,7 @@ async function handleTabEvent(tabId) {
 	const tab = await getTab(tabId);
 	const cachedData = dataCache.get(tab.url);
 
-	if (cachedData && cachedData.tabId === tabId) {
+	if (cachedData) {
 		console.log('Using cached data for', tabId, cachedData);
 		handleGetDate(tabId, cachedData);
 	} else {
