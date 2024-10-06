@@ -184,30 +184,31 @@ function sendMessage(tabId, message) {
 	return promise;
 }
 
-chrome.tabs.onActivated.addListener(async ({ tabId }) => {
-	console.log('Tab activated', tabId);
+async function handleTabEvent(tabId) {
+	console.log('Handling tab event for', tabId);
 
 	const tabReady = await isTabReady({ tabId });
-	if (!tabReady) {
-		// console.log('Tab is not ready.', tabId);
-		return;
-	}
+	if (!tabReady) return;
 
-	const response = await sendMessage(tabId, { action: 'get-date' });
-	handleGetDate(tabId, response);
+	const tab = await getTab(tabId);
+	const cachedData = dataCache.get(tab.url);
+
+	if (cachedData && cachedData.tabId === tabId) {
+		console.log('Using cached data for', tabId, cachedData);
+		handleGetDate(tabId, cachedData);
+	} else {
+		console.log('No cache match found for', tabId);
+		const response = await sendMessage(tabId, { action: 'get-date' });
+		handleGetDate(tabId, response);
+	}
+}
+
+chrome.tabs.onActivated.addListener(({ tabId }) => {
+	handleTabEvent(tabId);
 });
 
-chrome.tabs.onUpdated.addListener(async (tabId) => {
-	console.log('Tab updated', tabId);
-
-	const tabReady = await isTabReady({ tabId });
-	if (!tabReady) {
-		// console.log('Tab is not ready.', tabId);
-		return;
-	}
-
-	const response = await sendMessage(tabId, { action: 'get-date' });
-	handleGetDate(tabId, response);
+chrome.tabs.onUpdated.addListener((tabId) => {
+	handleTabEvent(tabId);
 });
 
 chrome.tabs.onHighlighted.addListener(async ({ tabIds }) => {
