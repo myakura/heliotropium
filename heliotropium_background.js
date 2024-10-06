@@ -211,7 +211,7 @@ chrome.tabs.onUpdated.addListener((tabId) => {
 	handleTabEvent(tabId);
 });
 
-chrome.tabs.onHighlighted.addListener(async ({ tabIds }) => {
+chrome.tabs.onHighlighted.addListener(({ tabIds }) => {
 	console.log('Tabs highlighted', tabIds);
 	logCache();
 });
