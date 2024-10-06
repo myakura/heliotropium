@@ -154,15 +154,14 @@ function updateBrowserAction({
 	chrome.browserAction.setTitle({ tabId, title });
 }
 
-async function sendMessageToTab(tabId, message) {
+function sendMessage(tabId, message) {
 	const { promise, resolve, reject } = Promise.withResolvers();
 
-	console.log(`Sending '${message}' message to tab`, tabId);
+	console.log('Sending message to tab', tabId, message);
 	chrome.tabs.sendMessage(tabId, message, (response) => {
 		if (chrome.runtime.lastError) {
 			reject(chrome.runtime.lastError.message);
 		}
-		console.log(`Got '${message}' response from tab`, tabId, response);
 		resolve(response);
 	});
 
@@ -178,7 +177,7 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 		return;
 	}
 
-	const response = await sendMessageToTab(tabId, { action: 'get-date' });
+	const response = await sendMessage(tabId, { action: 'get-date' });
 	handleGetDate(tabId, response);
 });
 
@@ -191,7 +190,7 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 		return;
 	}
 
-	const response = await sendMessageToTab(tabId, { action: 'get-date' });
+	const response = await sendMessage(tabId, { action: 'get-date' });
 	handleGetDate(tabId, response);
 });
 
