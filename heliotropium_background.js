@@ -187,20 +187,50 @@ function sendMessage(tabId, message) {
 async function handleTabEvent(tabId) {
 	console.log('Handling tab event for', tabId);
 
+	if (!await isTabReadyForProcessing(tabId)) return;
+
+	const data = await processTabData(tabId);
+	if (data) {
+		handleGetDate(tabId, data);
+	} else {
+		console.log('No valid data found or retrieved for tab', tabId);
+	}
+}
+
+async function isTabReadyForProcessing(tabId) {
 	const tabReady = await isTabReady({ tabId });
-	if (!tabReady) return;
+	if (!tabReady) {
+		console.log(`Tab ${tabId} is not ready for processing.`);
+		return false;
+	}
+	return true;
+}
 
+async function processTabData(tabId) {
 	const tab = await getTab(tabId);
-	const cachedData = dataCache.get(tab.url);
+	if (!tab) return null;
 
+	const cachedData = dataCache.get(tab.url);
 	if (cachedData) {
 		console.log('Using cached data for', tabId, cachedData);
-		handleGetDate(tabId, cachedData);
-	} else {
-		console.log('No cache match found for', tabId);
-		const response = await sendMessage(tabId, { action: 'get-date' });
-		handleGetDate(tabId, response);
+		return cachedData;
 	}
+
+	return await fetchTabDateFromContentScript(tabId);
+}
+
+async function fetchTabDateFromContentScript(tabId) {
+	console.log('No cache match found for', tabId);
+	const response = await sendMessage(tabId, { action: 'get-date' });
+
+	if (response) {
+		console.log('Received date from content script:', response);
+		dataCache.set(response.url, { tabId, ...response });
+		return response;
+	}
+
+	console.log('No date received from content script.');
+	return null;
 }
 
 chrome.tabs.onActivated.addListener(({ tabId }) => {
