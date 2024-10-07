@@ -187,7 +187,7 @@ function sendMessage(tabId, message) {
 async function handleTabEvent(tabId) {
 	console.log('Handling tab event for', tabId);
 
-	if (!await isTabReadyForProcessing(tabId)) return;
+	if (!await isTabReady({ tabId })) return;
 
 	const data = await processTabData(tabId);
 	if (data) {
@@ -195,15 +195,6 @@ async function handleTabEvent(tabId) {
 	} else {
 		console.log('No valid data found or retrieved for tab', tabId);
 	}
-}
-
-async function isTabReadyForProcessing(tabId) {
-	const tabReady = await isTabReady({ tabId });
-	if (!tabReady) {
-		console.log(`Tab ${tabId} is not ready for processing.`);
-		return false;
-	}
-	return true;
 }
 
 async function processTabData(tabId) {
