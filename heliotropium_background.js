@@ -247,3 +247,56 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 
 	handleGetDate(tabId, message);
 });
+
+
+chrome.runtime.onConnectExternal.addListener((port) => {
+	console.log('Connected to external extension:');
+	console.dir(port);
+
+	port.onMessage.addListener(async (message) => {
+		console.log('Got a message from external extension:');
+		console.dir(message);
+
+		if (message?.action === 'get-dates-from-selected-tabs') {
+			const tabIds = message?.tabIds;
+
+			if (!validateTabIds(tabIds)) {
+				port.postMessage({ error: 'Invalid tabIds provided.' });
+				return;
+			}
+
+			const tabDataArray = await getDatesFromTabs(tabIds);
+			port.postMessage({ action: 'dates-from-selected-tabs', data: tabDataArray });
+		}
+	});
+});
+
+function validateTabIds(tabIds) {
+	return Array.isArray(tabIds) && tabIds.length > 0;
+}
+
+async function getDatesFromTabs(tabIds) {
+	const tabDataPromises = tabIds.map(async (tabId) => {
+		try {
+			if (!await isTabReady({ tabId })) {
+				const tabData = await processTabData(tabId);
+				return formatTabData(tabId, tabData);
+			}
+			return formatTabData(tabId, null);
+		} catch (error) {
+			console.log(`Error processing tab ${tabId}:`, error);
+			return formatTabData(tabId, null);
+		}
+	});
+
+	const results = await Promise.allSettled(tabDataPromises);
+
+	return results.map(result => result.status === 'fulfilled' ? result.value : null).filter(Boolean);
+}
+
+function formatTabData(tabId, tabData) {
+	if (tabData && tabData.date) {
+		return { tabId, url: tabData.url, date: tabData.date };
+	}
+	return { tabId, url: tabData?.url || 'Unknown URL', date: 'N/A' };
+}
