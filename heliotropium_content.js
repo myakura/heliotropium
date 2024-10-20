@@ -104,6 +104,9 @@ function findDateFromElementContent() {
 		{ selector: 'time' },
 		{ selector: 'div.date' },
 		{ selector: 'span.date' },
+		{ selector: '.pubdate' },
+		{ selector: 'p.gargardate' /* Gogole Search Central Blog */ },
+		{ selector: 'devsite-content-footer > p:last-child' /* Chrome Developers, web.dev */ },
 	];
 
 	for (const selector of dateElements) {
