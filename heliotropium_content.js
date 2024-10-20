@@ -118,8 +118,8 @@ function findDateFromElementContent() {
 
 function findDateInsideHashTarget() {
 	const hash = location.hash;
-	const target = hash !== '' ? document.querySelector(hash) : null;
-	if (!target) return null;
+	const hashTarget = (hash !== '') ? document.querySelector(hash) : null;
+	if (!hashTarget) return null;
 
 	const dateElements = [
 		{ selector: 'relative-time[datetime]', valueAttr: 'datetime' },
@@ -130,9 +130,9 @@ function findDateInsideHashTarget() {
 	];
 
 	for (const { selector, valueAttr } of dateElements) {
-		const value = getValueFromElement({ selector, valueAttr, scope: target });
+		const value = getValueFromElement({ selector, valueAttr, scope: hashTarget });
 		if (value) {
-			console.log(`heliotropium: found date "${value}" inside hash target`, target);
+			console.log(`heliotropium: found date "${value}" inside hash target`, hashTarget);
 			return value;
 		}
 	}
