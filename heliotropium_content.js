@@ -1,18 +1,47 @@
 'use strict';
 
-function hasJsonLdDateProperty(object) {
-	const DATE_PROPERTIES = ['datePublished'];
-	const hasDate = DATE_PROPERTIES.some((property) => property in object);
-	return hasDate;
-}
-
 function isJsonLdArticle(object) {
 	const ARTICLE_TYPES = ['Article', 'BlogPosting', 'WebPage'];
 	const type = object?.['@type'];
-	const isArticle = Array.isArray(type)
-		? type.some((t) => ARTICLE_TYPES.some((suffix) => t.endsWith(suffix)))
-		: ARTICLE_TYPES.some((suffix) => type?.endsWith(suffix));
-	return isArticle;
+	if (Array.isArray(type)) {
+		return type.some((t) => ARTICLE_TYPES.some((suffix) => t.endsWith(suffix)));
+	}
+	return ARTICLE_TYPES.some((suffix) => type?.endsWith(suffix));
+}
+
+function hasJsonLdDateProperty(object) {
+	const DATE_PROPERTIES = ['datePublished'];
+	return DATE_PROPERTIES.some((property) => property in object);
+}
+
+function parseJsonLdScript(script) {
+	try {
+		// yet being invalid per JSON spec, but there are sites putting
+		// unescaped newlines in JSON-LD scripts, so just remove them.
+		const content = script.textContent.replaceAll('\n', '');
+		// FIXME: some sites even has `<!CDATA[...]]>` in script element :(
+
+		return JSON.parse(content);
+	}
+	catch (error) {
+		console.log('heliotropium: error parsing JSON-LD script.', error);
+		return null;
+	}
+}
+
+function findDateInJsonLdData(data) {
+	// { "@type": "Article", "datePublished": "..." }
+	if (isJsonLdArticle(data) && hasJsonLdDateProperty(data)) {
+		return data.datePublished;
+	}
+
+	// YouTube
+	// { "@type": "VideoObject", "uploadDate": "..." }
+	if (data?.['@type'] === 'VideoObject') {
+		return data.uploadDate;
+	}
+
+	return null;
 }
 
 function findDateFromJsonLd() {
@@ -22,48 +51,28 @@ function findDateFromJsonLd() {
 	console.log('heliotropium: found JSON-LD scripts.', scripts);
 
 	for (const script of scripts) {
-		try {
-			// yet being invalid per JSON spec, but there are sites putting
-			// unescaped newlines in JSON-LD scripts, so just remove them.
-			const content = script.textContent.replaceAll('\n', '');
-			// FIXME: some sites even has `<!CDATA[...]]>` in script element :(
+		const data = parseJsonLdScript(script);
+		if (!data) continue;
 
-			const data = JSON.parse(content);
+		const date = findDateInJsonLdData(data);
+		if (date) {
+			console.log(`heliotropium: found date "${date}" in`, data);
+			return date;
+		}
 
-			// { "@type": "Article", "datePublished": "..." }
-			if (isJsonLdArticle(data) && hasJsonLdDateProperty(data)) {
-				const date = data.datePublished;
+		// [{ "@type": "Article", "datePublished": "..." }]
+		// { "@graph": [{ "@type": "Article", "datePublished": "..." }] }
+		const arraysToCheck = [data, data?.['@graph']].filter(Array.isArray);
+
+		for (const array of arraysToCheck) {
+			const article = array.find((item) => isJsonLdArticle(item) && hasJsonLdDateProperty(item));
+			if (article) {
+				const date = article.datePublished;
 				if (date) {
-					console.log(`heliotropium: found date "${date}" in`, data);
+					console.log(`heliotropium: found date "${date}" in`, article);
 					return date;
 				}
 			}
-
-			// YouTube
-			// { "@type": "VideoObject", "uploadDate": "..." }
-			if (data?.['@type'] === 'VideoObject') {
-				const date = data.uploadDate;
-				if (date) {
-					console.log(`heliotropium: found date "${date}" in`, data);
-					return date;
-				}
-			}
-
-			// [{ "@type": "Article", "datePublished": "..." }]
-			// { "@graph": [{ "@type": "Article", "datePublished": "..." }] }
-			const arraysToCheck = [data, data?.['@graph']].filter(Array.isArray);
-			for (const array of arraysToCheck) {
-				const article = array.find((item) => isJsonLdArticle(item) && hasJsonLdDateProperty(item));
-				if (article) {
-					const date = article.datePublished;
-					if (date) {
-						console.log(`heliotropium: found date "${date}" in`, article);
-						return date;
-					}
-				}
-			}
-		} catch (error) {
-			console.log('heliotropium: error parsing JSON-LD script.', error);
 		}
 	}
 
@@ -77,6 +86,7 @@ function getValueFromElement({ selector, valueAttr = null, scope = document }) {
 
 	const value = (matched.getAttribute(valueAttr) || matched.textContent || '').trim();
 	console.log(`heliotropium: found ${valueAttr ? `"${valueAttr}" value of ` : ''}"${value}" in`, matched);
+
 	return value;
 }
 
