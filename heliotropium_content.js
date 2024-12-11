@@ -109,7 +109,7 @@ function findDateFromElementContent() {
 		{ selector: '.wd-pubdates' /* Chrome Developers, web.dev */ },
 	];
 
-	for (const selector of dateElements) {
+	for (const { selector } of dateElements) {
 		const value = getValueFromElement({ selector });
 		if (value) {
 			return value;
