@@ -84,7 +84,7 @@ function getValueFromElement({ selector, valueAttr = null, scope = document }) {
 	const matched = scope.querySelector(qsArgument);
 	if (!matched) return null;
 
-	const value = (matched.getAttribute(valueAttr) || matched.textContent || '').trim();
+	const value = (valueAttr ? matched.getAttribute(valueAttr) : matched.textContent)?.trim() || '';
 	console.log(`heliotropium: found ${valueAttr ? `"${valueAttr}" value of ` : ''}"${value}" in`, matched);
 
 	return value;
