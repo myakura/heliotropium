@@ -18,7 +18,7 @@ function parseJsonLdScript(script) {
 	try {
 		// yet being invalid per JSON spec, but there are sites putting
 		// unescaped newlines in JSON-LD scripts, so just remove them.
-		const content = script.textContent.replaceAll('\n', '');
+		const content = script.textContent?.replaceAll('\n', '') || '';
 		// FIXME: some sites even has `<!CDATA[...]]>` in script element :(
 
 		return JSON.parse(content);
@@ -30,6 +30,8 @@ function parseJsonLdScript(script) {
 }
 
 function findDateInJsonLdData(data) {
+	if (!data) return null;
+
 	// { "@type": "Article", "datePublished": "..." }
 	if (isJsonLdArticle(data) && hasJsonLdDateProperty(data)) {
 		return data.datePublished;
