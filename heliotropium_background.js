@@ -17,7 +17,7 @@ function parseYYYYMMDD(dateString) {
 	// "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
 	const RE_YYYYMMDD = /(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/;
 
-	let match = RE_YYYYMMDD.exec(dateString);
+	const match = RE_YYYYMMDD.exec(dateString);
 	if (!match) return null;
 
 	const { year, month, day } = match.groups;
@@ -99,7 +99,7 @@ function handleGetDate(tabId, message) {
 	// prefers shorter month-day format for the badge
 	// if M/D is acceptable, use it; otherwise, use MMDD
 	const monthDay = `${Number(month)}/${Number(day)}`;
-	const badgeText = monthDay.length < 5 ? monthDay : monthDay.replace('/', '')
+	const badgeText = monthDay.length < 5 ? monthDay : monthDay.replace('/', '');
 	updateBrowserAction({
 		tabId,
 		enabled: true,
@@ -166,7 +166,7 @@ function updateBrowserAction({
 	chrome.browserAction[method](tabId);
 	chrome.browserAction.setIcon({ tabId, path: icon });
 	chrome.browserAction.setBadgeText({ tabId, text: badgeText });
-	chrome.browserAction.setBadgeBackgroundColor({ tabId, color: '#36f' })
+	chrome.browserAction.setBadgeBackgroundColor({ tabId, color: '#36f' });
 	chrome.browserAction.setTitle({ tabId, title });
 }
 
@@ -291,7 +291,9 @@ async function getDatesFromTabs(tabIds) {
 
 	const results = await Promise.allSettled(tabDataPromises);
 
-	return results.map(result => result.status === 'fulfilled' ? result.value : null).filter(Boolean);
+	return results.map((result) => {
+		return result.status === 'fulfilled' ? result.value : null;
+	}).filter(Boolean);
 }
 
 function formatTabData(tabId, tabData) {
