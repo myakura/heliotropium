@@ -133,6 +133,8 @@ async function isTabReady({ tab = null, tabId = null }) {
 	}
 	console.log('Fetched tab', tabId, tab);
 
+	if (!tab) return false;
+
 	const { active, url, status } = tab;
 
 	if (!active) {
@@ -238,6 +240,10 @@ chrome.tabs.onHighlighted.addListener(({ tabIds }) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
+	if (!sender.tab) {
+		console.log('No tab information in sender.');
+		return;
+	}
 	const { id: tabId, title: tabTitle, url: tabUrl } = sender.tab;
 	console.group('Got a message from tab', tabId);
 	console.log('title:', tabTitle);
@@ -260,7 +266,7 @@ chrome.runtime.onConnectExternal.addListener((port) => {
 		if (message?.action === 'get-dates-from-selected-tabs') {
 			const tabIds = message?.tabIds;
 
-			if (!validateTabIds(tabIds)) {
+			if (!tabIds || !validateTabIds(tabIds)) {
 				port.postMessage({ error: 'Invalid tabIds provided.' });
 				return;
 			}
