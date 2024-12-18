@@ -81,29 +81,29 @@ function findDateFromJsonLd() {
 	return null;
 }
 
-function getValueFromElement({ selector, valueAttr = null, scope = document }) {
-	const qsArgument = valueAttr ? `${selector}[${valueAttr}]` : selector;
-	const matched = scope.querySelector(qsArgument);
-	if (!matched) return null;
+function getValueFromElement({ selector, attribute = null, scope = document }) {
+	const qsArgument = attribute ? `${selector}[${attribute}]` : selector;
+	const match = scope.querySelector(qsArgument);
+	if (!match) return null;
 
-	const value = (valueAttr ? matched.getAttribute(valueAttr) : matched.textContent)?.trim() || '';
-	console.log(`heliotropium: found ${valueAttr ? `"${valueAttr}" value of ` : ''}"${value}" in`, matched);
+	const value = (attribute ? match.getAttribute(attribute) : match.textContent)?.trim() || '';
+	console.log(`heliotropium: found ${attribute ? `"${attribute}" value of ` : ''}"${value}" in`, match);
 
 	return value;
 }
 
 function findDateFromDateElements() {
 	const dateElements = [
-		{ selector: 'meta[property="article:published_time"]', valueAttr: 'content' },
-		{ selector: 'meta[name="pubdate"]', valueAttr: 'content' },
-		{ selector: 'meta[name="creation_date"]', valueAttr: 'content' },
-		{ selector: 'meta[name="date"]', valueAttr: 'content' },
-		{ selector: 'relative-time', valueAttr: 'datetime' },
-		{ selector: 'time', valueAttr: 'datetime' },
+		{ selector: 'meta[property="article:published_time"]', attribute: 'content' },
+		{ selector: 'meta[name="pubdate"]', attribute: 'content' },
+		{ selector: 'meta[name="creation_date"]', attribute: 'content' },
+		{ selector: 'meta[name="date"]', attribute: 'content' },
+		{ selector: 'relative-time', attribute: 'datetime' },
+		{ selector: 'time', attribute: 'datetime' },
 	];
 
-	for (const { selector, valueAttr } of dateElements) {
-		const value = getValueFromElement({ selector, valueAttr });
+	for (const { selector, attribute } of dateElements) {
+		const value = getValueFromElement({ selector, attribute });
 		if (value) {
 			return value;
 		}
@@ -130,22 +130,21 @@ function findDateFromElementContent() {
 	return null;
 }
 
-
 function findDateInsideHashTarget() {
 	const hash = location.hash;
 	const hashTarget = (hash !== '') ? document.querySelector(hash) : null;
 	if (!hashTarget) return null;
 
 	const dateElements = [
-		{ selector: 'relative-time[datetime]', valueAttr: 'datetime' },
-		{ selector: 'time[datetime]', valueAttr: 'datetime' },
+		{ selector: 'relative-time[datetime]', attribute: 'datetime' },
+		{ selector: 'time[datetime]', attribute: 'datetime' },
 		{ selector: 'time' },
 		{ selector: 'div.date' },
 		{ selector: 'span.date' },
 	];
 
-	for (const { selector, valueAttr } of dateElements) {
-		const value = getValueFromElement({ selector, valueAttr, scope: hashTarget });
+	for (const { selector, attribute } of dateElements) {
+		const value = getValueFromElement({ selector, attribute, scope: hashTarget });
 		if (value) {
 			console.log(`heliotropium: found date "${value}" inside hash target`, hashTarget);
 			return value;
