@@ -119,6 +119,7 @@ function findDateFromElementContent() {
 		{ selector: '.pubdate' },
 		{ selector: 'p.gargardate' /* Google Search Central Blog */ },
 		{ selector: '.wd-pubdates' /* Chrome Developers, web.dev */ },
+		{ selector: '[class^="ArticleHeader_pubDate__"]' /* Zenn */ },
 	];
 
 	for (const { selector } of dateElements) {
