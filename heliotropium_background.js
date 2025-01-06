@@ -284,7 +284,7 @@ function validateTabIds(tabIds) {
 async function getDatesFromTabs(tabIds) {
 	const tabDataPromises = tabIds.map(async (tabId) => {
 		try {
-			if (!await isTabReady({ tabId })) {
+			if (await isTabReady({ tabId })) {
 				const tabData = await processTabData(tabId);
 				return formatTabData(tabId, tabData);
 			}
