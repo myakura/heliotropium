@@ -263,7 +263,7 @@ chrome.runtime.onConnectExternal.addListener((port) => {
 		console.log('Got a message from external extension:');
 		console.dir(message);
 
-		if (message?.action === 'get-dates-from-selected-tabs') {
+		if (message?.action === 'get-dates') {
 			const tabIds = message?.tabIds;
 
 			if (!tabIds || !validateTabIds(tabIds)) {
@@ -272,7 +272,7 @@ chrome.runtime.onConnectExternal.addListener((port) => {
 			}
 
 			const tabDataArray = await getDatesFromTabs(tabIds);
-			port.postMessage({ action: 'dates-from-selected-tabs', data: tabDataArray });
+			port.postMessage({ data: tabDataArray });
 		}
 	});
 });
