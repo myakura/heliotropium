@@ -303,8 +303,19 @@ async function getDatesFromTabs(tabIds) {
 }
 
 function formatTabData(tabId, tabData) {
+	let data;
 	if (tabData && tabData.date) {
-		return { tabId, url: tabData.url, date: tabData.date };
+		data = {
+			tabId,
+			url: tabData.url,
+			originalDateString: tabData.date,
+			date: parseDate(tabData.date)
+		};
 	}
-	return { tabId, url: tabData?.url || 'Unknown URL', date: 'N/A' };
+	data = {
+		tabId,
+		url: tabData?.url || 'Unknown URL',
+		originalDateString: 'N/A'
+	};
+	return data;
 }
