@@ -100,6 +100,7 @@ function findDateFromDateElements() {
 		{ selector: 'meta[name="date"]', attribute: 'content' },
 		{ selector: 'relative-time', attribute: 'datetime' },
 		{ selector: 'time', attribute: 'datetime' },
+		{ selector: '.bz_comment_time', attribute: 'data-ts' /* WebKit Bugzilla */ },
 	];
 
 	for (const { selector, attribute } of dateElements) {
@@ -117,8 +118,10 @@ function findDateFromElementContent() {
 		{ selector: 'div.date' },
 		{ selector: 'span.date' },
 		{ selector: '.pubdate' },
+		{ selector: '.post_date' },
 		{ selector: 'p.gargardate' /* Google Search Central Blog */ },
 		{ selector: '.wd-pubdates' /* Chrome Developers, web.dev */ },
+		{ selector: 'devsite-content-footer p:last-child' /* Chrome Developers */ },
 		{ selector: '[class^="ArticleHeader_pubDate__"]' /* Zenn */ },
 	];
 
