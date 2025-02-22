@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Heliotropium",
-	"version": "0.22.1",
+	"version": "0.22.2",
 	"description": "Check out the date of the page",
 	"icons": {
 		"48": "icons/icon_gray.png",
@@ -55,9 +55,5 @@
 			"id": "{cf75506a-2c8d-4c0c-9515-9cb34297ad37}",
 			"strict_min_version": "121.0"
 		}
-	},
-	"externally_connectable": {
-		"ids": ["{ea9d3a55-e821-4554-a9ce-e3e93b011b32}"],
-		"matches": ["https://*/*", "http://*/*"]
 	}
 }
