@@ -172,7 +172,6 @@ function handleGetDate(tabId, message) {
 }
 
 async function fetchTabDateFromContentScript(tabId) {
-	console.log('No cache match found for', tabId);
 	const response = await sendMessage(tabId, { action: 'get-date' });
 
 	if (response) {
@@ -195,6 +194,7 @@ async function processTabData(tabId) {
 		return cachedData;
 	}
 
+	console.log('No cache match found for', tabId);
 	return await fetchTabDateFromContentScript(tabId);
 }
 
@@ -296,12 +296,15 @@ chrome.runtime.onMessageExternal.addListener(async (message, sender, sendRespons
 		const tabIds = message?.tabIds;
 
 		if (!tabIds || !validateTabIds(tabIds)) {
+			console.log('Invalid tabIds provided:', tabIds);
 			sendResponse({ error: 'Invalid tabIds provided.' });
 			return;
 		}
 
 		try {
+			console.log('Getting dates from tabs:', tabIds);
 			const tabDataArray = await getDatesFromTabs(tabIds);
+			console.log('Sending back tab data:', tabDataArray);
 			sendResponse({ data: tabDataArray });
 		} catch (error) {
 			console.error('Error processing external request:', error);
