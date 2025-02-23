@@ -66,8 +66,7 @@ const tabDataStore = new Map();
 
 function logDataStore() {
 	console.group(`Current data store: ${tabDataStore.size} items`);
-	for (const [url, data] of tabDataStore) {
-		const { tabId, date } = data;
+	for (const [url, { tabId, date }] of tabDataStore) {
 		console.log({ tabId, url, date });
 	}
 	console.groupEnd();
