@@ -1,5 +1,86 @@
 'use strict';
 
+// utility functions
+
+function getTab(tabId) {
+	const { promise, resolve, reject } = Promise.withResolvers();
+	chrome.tabs.get(tabId, (tab) => {
+		if (chrome.runtime.lastError) {
+			reject(chrome.runtime.lastError.message);
+		}
+		resolve(tab);
+	});
+
+	return promise;
+}
+
+async function isTabReady({ tab = null, tabId = null }) {
+	if (!tab && !tabId) {
+		console.log('No `tab` nor `tabId` provided.');
+		return false;
+	}
+
+	if (!tab && tabId) {
+		console.log('Fetching tab', tabId);
+		tab = await getTab(tabId);
+	}
+	console.log('Fetched tab', tabId, tab);
+
+	if (!tab) return false;
+
+	const { active, url, status } = tab;
+
+	if (!active) {
+		console.log('Tab', tabId, 'is not active.');
+		return false;
+	}
+	if (!url.startsWith('http')) {
+		console.log('Tab', tabId, 'is not a web page.');
+		return false;
+	}
+	if (status !== 'complete') {
+		console.log('Tab', tabId, 'has not finished loading.');
+		return false;
+	}
+
+	return true;
+}
+
+function updateBrowserAction({
+	tabId,
+	enabled = false,
+	badgeText = '',
+	title = '',
+}) {
+	const method = enabled ? 'enable' : 'disable';
+	const icon = enabled
+		? window.matchMedia('(prefers-color-scheme: light)').matches
+			? 'icons/icon_black.png'
+			: 'icons/icon_white.png'
+		: 'icons/icon_lightgray.png';
+	chrome.browserAction[method](tabId);
+	chrome.browserAction.setIcon({ tabId, path: icon });
+	chrome.browserAction.setBadgeText({ tabId, text: badgeText });
+	chrome.browserAction.setBadgeBackgroundColor({ tabId, color: '#36f' });
+	chrome.browserAction.setTitle({ tabId, title });
+}
+
+function sendMessage(tabId, message) {
+	const { promise, resolve, reject } = Promise.withResolvers();
+
+	console.log('Sending message to tab', tabId, message);
+	chrome.tabs.sendMessage(tabId, message, (response) => {
+		if (chrome.runtime.lastError) {
+			reject(chrome.runtime.lastError.message);
+		}
+		resolve(response);
+	});
+
+	return promise;
+}
+
+// extension specific functions
+
 const tabDataStore = new Map();
 
 function logDataStore() {
@@ -90,94 +171,18 @@ function handleGetDate(tabId, message) {
 	console.log('Updated badge:', badgeText);
 }
 
-function getTab(tabId) {
-	const { promise, resolve, reject } = Promise.withResolvers();
-	chrome.tabs.get(tabId, (tab) => {
-		if (chrome.runtime.lastError) {
-			reject(chrome.runtime.lastError.message);
-		}
-		resolve(tab);
-	});
+async function fetchTabDateFromContentScript(tabId) {
+	console.log('No cache match found for', tabId);
+	const response = await sendMessage(tabId, { action: 'get-date' });
 
-	return promise;
-}
-
-async function isTabReady({ tab = null, tabId = null }) {
-	if (!tab && !tabId) {
-		console.log('No `tab` nor `tabId` provided.');
-		return false;
+	if (response) {
+		console.log('Received date from content script:', response);
+		tabDataStore.set(response.url, { tabId, ...response });
+		return response;
 	}
 
-	if (!tab && tabId) {
-		console.log('Fetching tab', tabId);
-		tab = await getTab(tabId);
-	}
-	console.log('Fetched tab', tabId, tab);
-
-	if (!tab) return false;
-
-	const { active, url, status } = tab;
-
-	if (!active) {
-		console.log('Tab', tabId, 'is not active.');
-		return false;
-	}
-	if (!url.startsWith('http')) {
-		console.log('Tab', tabId, 'is not a web page.');
-		return false;
-	}
-	if (status !== 'complete') {
-		console.log('Tab', tabId, 'has not finished loading.');
-		return false;
-	}
-
-	return true;
-}
-
-function updateBrowserAction({
-	tabId,
-	enabled = false,
-	badgeText = '',
-	title = '',
-}) {
-	const method = enabled ? 'enable' : 'disable';
-	const icon = enabled
-		? window.matchMedia('(prefers-color-scheme: light)').matches
-			? 'icons/icon_black.png'
-			: 'icons/icon_white.png'
-		: 'icons/icon_lightgray.png';
-	chrome.browserAction[method](tabId);
-	chrome.browserAction.setIcon({ tabId, path: icon });
-	chrome.browserAction.setBadgeText({ tabId, text: badgeText });
-	chrome.browserAction.setBadgeBackgroundColor({ tabId, color: '#36f' });
-	chrome.browserAction.setTitle({ tabId, title });
-}
-
-function sendMessage(tabId, message) {
-	const { promise, resolve, reject } = Promise.withResolvers();
-
-	console.log('Sending message to tab', tabId, message);
-	chrome.tabs.sendMessage(tabId, message, (response) => {
-		if (chrome.runtime.lastError) {
-			reject(chrome.runtime.lastError.message);
-		}
-		resolve(response);
-	});
-
-	return promise;
-}
-
-async function handleTabEvent(tabId) {
-	console.log('Handling tab event for', tabId);
-
-	if (!await isTabReady({ tabId })) return;
-
-	const data = await processTabData(tabId);
-	if (data) {
-		handleGetDate(tabId, data);
-	} else {
-		console.log('No valid data found or retrieved for tab', tabId);
-	}
+	console.log('No date received from content script.');
+	return null;
 }
 
 async function processTabData(tabId) {
@@ -193,19 +198,20 @@ async function processTabData(tabId) {
 	return await fetchTabDateFromContentScript(tabId);
 }
 
-async function fetchTabDateFromContentScript(tabId) {
-	console.log('No cache match found for', tabId);
-	const response = await sendMessage(tabId, { action: 'get-date' });
+async function handleTabEvent(tabId) {
+	console.log('Handling tab event for', tabId);
 
-	if (response) {
-		console.log('Received date from content script:', response);
-		tabDataStore.set(response.url, { tabId, ...response });
-		return response;
+	if (!await isTabReady({ tabId })) return;
+
+	const data = await processTabData(tabId);
+	if (data) {
+		handleGetDate(tabId, data);
+	} else {
+		console.log('No valid data found or retrieved for tab', tabId);
 	}
-
-	console.log('No date received from content script.');
-	return null;
 }
+
+// event handling
 
 chrome.tabs.onActivated.addListener(({ tabId }) => {
 	handleTabEvent(tabId);
@@ -236,6 +242,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 });
 
 
+// handling messages from external extensions
 
 function validateTabIds(tabIds) {
 	return Array.isArray(tabIds) && tabIds.length > 0;
