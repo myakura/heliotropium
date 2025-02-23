@@ -108,29 +108,18 @@ function parseDate(dateString) {
 	return null;
 }
 
-function handleGetDate(tabId, message) {
-	console.log('Got a message from tab', tabId, message);
+function handleGetDate(tabId, { url, dateString }) {
+	console.log('Got a message from tab', tabId, url, dateString);
 
-	if (!message) {
-		console.log('Message is empty.');
-		updateBrowserAction({ tabId });
-		return;
-	}
+	if (!dateString) return updateBrowserAction({ tabId });
 
-	tabDataStore.set(message.url, { tabId, ...message });
+	tabDataStore.set(url, { tabId, ...message });
 
-	if (message.date === undefined) {
-		console.log('Date is unavailable.');
-		updateBrowserAction({ tabId });
-		return;
-	}
-
-	console.log('Parsing date:', `"${message.date}"`);
-	const { date } = message;
-	const parsedDate = parseDate(date);
+	console.log('Parsing date:', `"${dateString}"`);
+	const parsedDate = parseDate(dateString);
 
 	if (!parsedDate) {
-		console.log('Date unavailable.');
+		console.log('Unsupported date format.');
 		updateBrowserAction({ tabId });
 		return;
 	}
@@ -218,14 +207,14 @@ function formatTabData(tabId, tabData) {
 		return {
 			tabId,
 			url: tabData.url,
-			originalDateString: tabData.date,
+			dateString: tabData.date,
 			date: parseDate(tabData.date)
 		};
 	}
 	return {
 		tabId,
 		url: tabData?.url || 'Unknown URL',
-		originalDateString: 'N/A',
+		dateString: 'N/A',
 		date: null
 	};
 }

@@ -56,10 +56,10 @@ function findDateFromJsonLd() {
 		const data = parseJsonLdScript(script);
 		if (!data) continue;
 
-		const date = findDateInJsonLdData(data);
-		if (date) {
-			console.log(`heliotropium: found date "${date}" in`, data);
-			return date;
+		const dateString = findDateInJsonLdData(data);
+		if (dateString) {
+			console.log(`heliotropium: found "${dateString}" in`, data);
+			return dateString;
 		}
 
 		// [{ "@type": "Article", "datePublished": "..." }]
@@ -69,10 +69,10 @@ function findDateFromJsonLd() {
 		for (const array of arraysToCheck) {
 			const article = array.find((item) => isJsonLdArticle(item) && hasJsonLdDateProperty(item));
 			if (article) {
-				const date = article.datePublished;
-				if (date) {
-					console.log(`heliotropium: found date "${date}" in`, article);
-					return date;
+				const dateString = article.datePublished;
+				if (dateString) {
+					console.log(`heliotropium: found "${dateString}" in`, article);
+					return dateString;
 				}
 			}
 		}
@@ -150,7 +150,7 @@ function findDateInsideHashTarget() {
 	for (const { selector, attribute } of dateElements) {
 		const value = getValueFromElement({ selector, attribute, scope: hashTarget });
 		if (value) {
-			console.log(`heliotropium: found date "${value}" inside hash target`, hashTarget);
+			console.log(`heliotropium: found "${value}" inside hash target`, hashTarget);
 			return value;
 		}
 	}
@@ -166,9 +166,9 @@ function findDate() {
 	];
 
 	for (const finder of finders) {
-		const date = finder();
-		if (date) {
-			return date;
+		const dateString = finder();
+		if (dateString) {
+			return dateString;
 		}
 	}
 	return null;
@@ -191,14 +191,14 @@ function handleGetDate(message, sender, sendResponse) {
 		return;
 	}
 
-	const date = findDate();
-	if (!date) {
-		console.log('heliotropium: no date found.');
-		sendResponse({ error: 'No date found' });
+	const dateString = findDate();
+	if (!dateString) {
+		console.log('heliotropium: no date string found.');
+		sendResponse({ error: 'No date string found' });
 		return;
 	}
 
-	const response = { date, url: location.href };
+	const response = { dateString, url: location.href };
 	console.log('heliotropium: sending response.', response);
 	sendResponse(response);
 }
