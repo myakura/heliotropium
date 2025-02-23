@@ -255,30 +255,27 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 });
 
 
-chrome.runtime.onConnectExternal.addListener((port) => {
-	console.log('Connected to external extension:');
-	console.dir(port);
-
-	port.onMessage.addListener(async (message) => {
-		console.log('Got a message from external extension:');
-		console.dir(message);
-
-		if (message?.action === 'get-dates') {
-			const tabIds = message?.tabIds;
-
-			if (!tabIds || !validateTabIds(tabIds)) {
-				port.postMessage({ error: 'Invalid tabIds provided.' });
-				return;
-			}
-
-			const tabDataArray = await getDatesFromTabs(tabIds);
-			port.postMessage({ data: tabDataArray });
-		}
-	});
-});
 
 function validateTabIds(tabIds) {
 	return Array.isArray(tabIds) && tabIds.length > 0;
+}
+
+function formatTabData(tabId, tabData) {
+	let data;
+	if (tabData && tabData.date) {
+		data = {
+			tabId,
+			url: tabData.url,
+			originalDateString: tabData.date,
+			date: parseDate(tabData.date)
+		};
+	}
+	data = {
+		tabId,
+		url: tabData?.url || 'Unknown URL',
+		originalDateString: 'N/A'
+	};
+	return data;
 }
 
 async function getDatesFromTabs(tabIds) {
@@ -302,20 +299,25 @@ async function getDatesFromTabs(tabIds) {
 	}).filter(Boolean);
 }
 
-function formatTabData(tabId, tabData) {
-	let data;
-	if (tabData && tabData.date) {
-		data = {
-			tabId,
-			url: tabData.url,
-			originalDateString: tabData.date,
-			date: parseDate(tabData.date)
-		};
-	}
-	data = {
-		tabId,
-		url: tabData?.url || 'Unknown URL',
-		originalDateString: 'N/A'
-	};
-	return data;
-}
+
+chrome.runtime.onConnectExternal.addListener((port) => {
+	console.log('Connected to external extension:');
+	console.dir(port);
+
+	port.onMessage.addListener(async (message) => {
+		console.log('Got a message from external extension:');
+		console.dir(message);
+
+		if (message?.action === 'get-dates') {
+			const tabIds = message?.tabIds;
+
+			if (!tabIds || !validateTabIds(tabIds)) {
+				port.postMessage({ error: 'Invalid tabIds provided.' });
+				return;
+			}
+
+			const tabDataArray = await getDatesFromTabs(tabIds);
+			port.postMessage({ data: tabDataArray });
+		}
+	});
+});
