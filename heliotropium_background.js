@@ -171,16 +171,9 @@ async function processTabData(tabId) {
 }
 
 async function handleTabEvent(tabId) {
-	console.log('Handling tab event for', tabId);
-
-	if (!await isTabReady({ tabId })) return;
-
+	if (!await isTabReady(tabId)) return;
 	const data = await processTabData(tabId);
-	if (data) {
-		handleGetDate(tabId, data);
-	} else {
-		console.log('No valid data found or retrieved for tab', tabId);
-	}
+	if (data) handleGetDate(tabId, data);
 }
 
 // event handling
