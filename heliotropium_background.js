@@ -29,12 +29,7 @@ async function isTabReady({ tab = null, tabId = null }) {
 	return true;
 }
 
-function updateBrowserAction({
-	tabId,
-	enabled = false,
-	badgeText = '',
-	title = '',
-}) {
+function updateBrowserAction({ tabId, enabled = false, badgeText = '', title = '' }) {
 	const method = enabled ? 'enable' : 'disable';
 	const icon = enabled
 		? window.matchMedia('(prefers-color-scheme: light)').matches
