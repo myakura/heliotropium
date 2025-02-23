@@ -139,8 +139,7 @@ function handleGetDate(tabId, message) {
 	console.log('Parsed date:', parsedDate);
 	const { year, month, day } = parsedDate;
 
-	// prefers shorter month-day format for the badge
-	// if M/D is acceptable, use it; otherwise, use MMDD
+	// use M/D when the length is shorter, MMDD otherwise
 	const monthDay = `${Number(month)}/${Number(day)}`;
 	const badgeText = monthDay.length < 5 ? monthDay : monthDay.replace('/', '');
 	updateBrowserAction({
