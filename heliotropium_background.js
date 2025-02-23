@@ -108,6 +108,26 @@ function parseDate(dateString) {
 	return null;
 }
 
+function formatTabData(tabId) {
+	const tabData = [...tabDataStore.values()].find((data) => data.tabId === tabId);
+
+	if (tabData) {
+		return {
+			tabId,
+			url: tabData.url,
+			dateString: tabData.dateString,
+			date: tabData.date,
+		};
+	}
+
+	return {
+		tabId,
+		url: 'Unknown URL',
+		dateString: 'N/A',
+		date: null,
+	};
+}
+
 function handleGetDate(tabId, { url, dateString }) {
 	console.log('Got a message from tab', tabId, url, dateString);
 
@@ -157,10 +177,13 @@ async function fetchTabDateFromContentScript(tabId) {
 }
 
 async function processTabData(tabId) {
+	const cachedData = formatTabData(tabId);
+	if (cachedData.date) return cachedData;
+
 	const tab = await getTab(tabId);
 	if (!tab) return null;
 
-	return tabDataStore.get(tab.url) || await fetchTabDateFromContentScript(tabId);
+	return await fetchTabDateFromContentScript(tabId) || cachedData;
 }
 
 async function handleTabEvent(tabId) {
@@ -204,26 +227,6 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 
 function validateTabIds(tabIds) {
 	return Array.isArray(tabIds) && tabIds.length > 0;
-}
-
-function formatTabData(tabId) {
-	const tabData = [...tabDataStore.values()].find((data) => data.tabId === tabId);
-
-	if (tabData) {
-		return {
-			tabId,
-			url: tabData.url,
-			dateString: tabData.dateString,
-			date: tabData.date,
-		};
-	}
-
-	return {
-		tabId,
-		url: 'Unknown URL',
-		dateString: 'N/A',
-		date: null,
-	};
 }
 
 async function getDatesFromTabs(tabIds) {
