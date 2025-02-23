@@ -313,9 +313,15 @@ chrome.runtime.onMessageExternal.addListener(async (message, sender, sendRespons
 			return;
 		}
 
-		const tabDataArray = await getDatesFromTabs(tabIds);
-		sendResponse({ data: tabDataArray });
+		try {
+			const tabDataArray = await getDatesFromTabs(tabIds);
+			sendResponse({ data: tabDataArray });
+		} catch (error) {
+			console.error('Error processing external request:', error);
+			sendResponse({ error: 'Internal processing error' });
+		}
 	}
+
 	// indicate that response will be sent asynchronously
 	return true;
 });
