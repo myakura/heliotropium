@@ -151,15 +151,15 @@ function handleGetDate(tabId, message) {
 }
 
 async function fetchTabDateFromContentScript(tabId) {
-	const response = await sendMessage(tabId, { action: 'get-date' });
-
-	if (response) {
-		console.log('Received date from content script:', response);
-		tabDataStore.set(response.url, { tabId, ...response });
-		return response;
+	try {
+		const response = await sendMessage(tabId, { action: 'get-date' });
+		if (response) {
+			tabDataStore.set(response.url, { tabId, ...response });
+			return response;
+		}
+	} catch (error) {
+		console.log('Error fetching date:', error);
 	}
-
-	console.log('No date received from content script.');
 	return null;
 }
 
