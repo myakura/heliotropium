@@ -300,24 +300,22 @@ async function getDatesFromTabs(tabIds) {
 }
 
 
-chrome.runtime.onConnectExternal.addListener((port) => {
-	console.log('Connected to external extension:');
-	console.dir(port);
+chrome.runtime.onMessageExternal.addListener(async (message, sender, sendResponse) => {
+	console.log('Got a message from external extension:');
+	console.dir(sender);
+	console.dir(message);
 
-	port.onMessage.addListener(async (message) => {
-		console.log('Got a message from external extension:');
-		console.dir(message);
+	if (message?.action === 'get-dates') {
+		const tabIds = message?.tabIds;
 
-		if (message?.action === 'get-dates') {
-			const tabIds = message?.tabIds;
-
-			if (!tabIds || !validateTabIds(tabIds)) {
-				port.postMessage({ error: 'Invalid tabIds provided.' });
-				return;
-			}
-
-			const tabDataArray = await getDatesFromTabs(tabIds);
-			port.postMessage({ data: tabDataArray });
+		if (!tabIds || !validateTabIds(tabIds)) {
+			sendResponse({ error: 'Invalid tabIds provided.' });
+			return;
 		}
-	});
+
+		const tabDataArray = await getDatesFromTabs(tabIds);
+		sendResponse({ data: tabDataArray });
+	}
+	// indicate that response will be sent asynchronously
+	return true;
 });
