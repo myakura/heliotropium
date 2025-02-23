@@ -206,7 +206,9 @@ function validateTabIds(tabIds) {
 	return Array.isArray(tabIds) && tabIds.length > 0;
 }
 
-function formatTabData(tabId, tabData) {
+function formatTabData(tabId) {
+	const tabData = [...tabDataStore.values()].find((data) => data.tabId === tabId);
+
 	if (tabData) {
 		return {
 			tabId,
@@ -215,6 +217,7 @@ function formatTabData(tabId, tabData) {
 			date: tabData.date,
 		};
 	}
+
 	return {
 		tabId,
 		url: 'Unknown URL',
@@ -227,21 +230,17 @@ async function getDatesFromTabs(tabIds) {
 	const tabDataPromises = tabIds.map(async (tabId) => {
 		try {
 			if (await isTabReady({ tabId })) {
-				const tabData = await processTabData(tabId);
-				return formatTabData(tabId, tabData);
+				await processTabData(tabId);
 			}
-			return formatTabData(tabId, null);
+			return formatTabData(tabId);
 		} catch (error) {
 			console.log(`Error processing tab ${tabId}:`, error);
-			return formatTabData(tabId, null);
+			return formatTabData(tabId);
 		}
 	});
 
 	const results = await Promise.allSettled(tabDataPromises);
-
-	return results.map((result) => {
-		return result.status === 'fulfilled' ? result.value : null;
-	}).filter(Boolean);
+	return results.map((result) => (result.status === 'fulfilled' ? result.value : null)).filter(Boolean);
 }
 
 
