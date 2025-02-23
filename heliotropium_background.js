@@ -15,34 +15,17 @@ function getTab(tabId) {
 }
 
 async function isTabReady({ tab = null, tabId = null }) {
-	if (!tab && !tabId) {
-		console.log('No `tab` nor `tabId` provided.');
-		return false;
-	}
+	if (!tabId) return false;
 
-	if (!tab && tabId) {
-		console.log('Fetching tab', tabId);
-		tab = await getTab(tabId);
-	}
-	console.log('Fetched tab', tabId, tab);
-
+	console.log('Fetching tab', tabId);
+	const tab = await getTab(tabId);
 	if (!tab) return false;
 
 	const { active, url, status } = tab;
-
-	if (!active) {
-		console.log('Tab', tabId, 'is not active.');
+	if (!active || !url?.startsWith('http') || status !== 'complete') {
+		console.log(`Tab ${tabId} is not ready.`);
 		return false;
 	}
-	if (!url.startsWith('http')) {
-		console.log('Tab', tabId, 'is not a web page.');
-		return false;
-	}
-	if (status !== 'complete') {
-		console.log('Tab', tabId, 'has not finished loading.');
-		return false;
-	}
-
 	return true;
 }
 
