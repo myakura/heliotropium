@@ -81,7 +81,7 @@ function parseDate(dateString) {
 
 		// matches month-day-year patterns
 		// e.g. "March 19th, 1984", "Mar. 19, 1984", etc.
-		/(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6} \s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i,
+		/(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i,
 
 		// matches day-month-year patterns
 		// e.g. "19th March 1984", "19 Mar 1984"
