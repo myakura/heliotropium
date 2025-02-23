@@ -108,7 +108,7 @@ function parseDate(dateString) {
 	return null;
 }
 
-function formatTabData(tabId) {
+function getOrCreateTabData(tabId) {
 	const tabData = [...tabDataStore.values()].find((data) => data.tabId === tabId);
 
 	if (tabData) {
@@ -152,7 +152,7 @@ function handleGetDate(tabId, { url, dateString }) {
 	});
 }
 
-async function fetchTabDateFromContentScript(tabId) {
+async function fetchTabDate(tabId) {
 	try {
 		const response = await sendMessage(tabId, { action: 'get-date' });
 
@@ -176,19 +176,19 @@ async function fetchTabDateFromContentScript(tabId) {
 	return null;
 }
 
-async function processTabData(tabId) {
-	const cachedData = formatTabData(tabId);
+async function loadTabData(tabId) {
+	const cachedData = getOrCreateTabData(tabId);
 	if (cachedData.date) return cachedData;
 
 	const tab = await getTab(tabId);
 	if (!tab) return null;
 
-	return await fetchTabDateFromContentScript(tabId) || cachedData;
+	return await fetchTabDate(tabId) || cachedData;
 }
 
 async function handleTabEvent(tabId) {
 	if (!await isTabReady({ tabId })) return;
-	const data = await processTabData(tabId);
+	const data = await loadTabData(tabId);
 	if (data) handleGetDate(tabId, data);
 }
 
@@ -233,12 +233,12 @@ async function getDatesFromTabs(tabIds) {
 	const tabDataPromises = tabIds.map(async (tabId) => {
 		try {
 			if (await isTabReady({ tabId })) {
-				await processTabData(tabId);
+				await loadTabData(tabId);
 			}
-			return formatTabData(tabId);
+			return getOrCreateTabData(tabId);
 		} catch (error) {
 			console.log(`Error processing tab ${tabId}:`, error);
-			return formatTabData(tabId);
+			return getOrCreateTabData(tabId);
 		}
 	});
 
