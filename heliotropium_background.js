@@ -14,7 +14,7 @@ function getTab(tabId) {
 	return promise;
 }
 
-async function isTabReady({ tab = null, tabId = null }) {
+async function isTabReady({ tabId = null }) {
 	if (!tabId) return false;
 
 	console.log('Fetching tab', tabId);
