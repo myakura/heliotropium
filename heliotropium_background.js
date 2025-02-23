@@ -76,31 +76,31 @@ function logDataStore() {
 logDataStore();
 
 function parseDate(dateString) {
-	// "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
-	const RE_YYYYMMDD = /(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/;
+	const patterns = [
+		// "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
+		/(?<year>\d{4})[-\/.年](?<month>\d{1,2})[-\/.月](?<day>\d{1,2})日?/,
 
-	// matches month-day-year patterns
-	// e.g. "March 19th, 1984", "Mar. 19, 1984", etc.
-	const RE_MONTH_DAY_YEAR = /(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i;
+		// matches month-day-year patterns
+		// e.g. "March 19th, 1984", "Mar. 19, 1984", etc.
+		/(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6} \s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i,
 
-	// matches day-month-year patterns
-	// e.g. "19th March 1984", "19 Mar 1984"
-	const RE_DAY_MONTH_YEAR = /(?<day>\d{1,2})(st|nd|rd|th)?\s+(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<year>\d{4})/i;
+		// matches day-month-year patterns
+		// e.g. "19th March 1984", "19 Mar 1984"
+		/(?<day>\d{1,2})(st|nd|rd|th)?\s+(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<year>\d{4})/i
+	];
 
-	const regexes = [RE_YYYYMMDD, RE_MONTH_DAY_YEAR, RE_DAY_MONTH_YEAR];
-
-	const monthsMap = {
-		jan: '1', feb: '2', mar: '3', apr: '4', may: '5', jun: '6',
-		jul: '7', aug: '8', sep: '9', oct: '10', nov: '11', dec: '12'
+	const months = {
+		jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+		jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
 	};
 
-	for (const regex of regexes) {
-		const match = regex.exec(dateString);
+	for (const pattern of patterns) {
+		const match = pattern.exec(dateString);
 		if (match) {
 			const { year, month, day } = match.groups;
 			return {
 				year,
-				month: monthsMap[month?.toLowerCase()]?.padStart(2, '0') || month,
+				month: months[month?.toLowerCase()] || month.padStart(2, '0'),
 				day: day.padStart(2, '0'),
 			};
 		}
