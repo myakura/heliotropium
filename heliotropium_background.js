@@ -167,14 +167,7 @@ async function processTabData(tabId) {
 	const tab = await getTab(tabId);
 	if (!tab) return null;
 
-	const cachedData = tabDataStore.get(tab.url);
-	if (cachedData) {
-		console.log('Using cached data for', tabId, cachedData);
-		return cachedData;
-	}
-
-	console.log('No cache match found for', tabId);
-	return await fetchTabDateFromContentScript(tabId);
+	return tabDataStore.get(tab.url) || await fetchTabDateFromContentScript(tabId);
 }
 
 async function handleTabEvent(tabId) {
