@@ -289,8 +289,8 @@ async function getDatesFromTabs(tabIds) {
 
 chrome.runtime.onMessageExternal.addListener(async (message, sender, sendResponse) => {
 	console.log('Got a message from external extension:');
-	console.dir(sender);
-	console.dir(message);
+	console.log(sender);
+	console.log(message);
 
 	if (message?.action === 'get-dates') {
 		const tabIds = message?.tabIds;
