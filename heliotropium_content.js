@@ -175,26 +175,31 @@ function findDate() {
 }
 
 function handleGetDate(message, sender, sendResponse) {
-	console.log('heliotropium: got a message.', message);
+	console.log('heliotropium: got a message.');
+	console.log(sender);
+	console.log(message);
 
-	if (!message) {
-		console.log('heliotropium: message is empty.');
+	if (!message || typeof message !== 'object') {
+		console.log('heliotropium: received an invalid message.');
+		sendResponse({ error: 'Invalid request' });
 		return;
 	}
 
 	if (message?.action !== 'get-date') {
-		console.log(`heliotropium: non-supported action '${message?.action}'.`);
+		console.log(`heliotropium: unsupported action '${message?.action}'.`);
+		sendResponse({ error: 'Unsupported action' });
 		return;
 	}
 
 	const date = findDate();
 	if (!date) {
 		console.log('heliotropium: no date found.');
+		sendResponse({ error: 'No date found' });
 		return;
 	}
 
 	const response = { date, url: location.href };
-	console.log('heliotropium: sending back a response.', response);
+	console.log('heliotropium: sending response.', response);
 	sendResponse(response);
 }
 
