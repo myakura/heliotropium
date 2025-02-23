@@ -160,7 +160,7 @@ async function processTabData(tabId) {
 }
 
 async function handleTabEvent(tabId) {
-	if (!await isTabReady(tabId)) return;
+	if (!await isTabReady({ tabId })) return;
 	const data = await processTabData(tabId);
 	if (data) handleGetDate(tabId, data);
 }
