@@ -113,7 +113,7 @@ function handleGetDate(tabId, { url, dateString }) {
 
 	if (!dateString) return updateBrowserAction({ tabId });
 
-	tabDataStore.set(url, { tabId, ...message });
+	tabDataStore.set(url, { tabId, url, dateString });
 
 	console.log('Parsing date:', `"${dateString}"`);
 	const parsedDate = parseDate(dateString);
