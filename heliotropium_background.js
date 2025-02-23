@@ -73,6 +73,9 @@ function sendMessage(tabId, message) {
 		if (chrome.runtime.lastError) {
 			reject(chrome.runtime.lastError.message);
 		}
+		if (!response) {
+			reject('No response from content script.');
+		}
 		resolve(response);
 	});
 
