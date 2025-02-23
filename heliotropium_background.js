@@ -13,23 +13,10 @@ function logDataStore() {
 
 logDataStore();
 
-function parseYYYYMMDD(dateString) {
+function parseDate(dateString) {
 	// "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
 	const RE_YYYYMMDD = /(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/;
 
-	const match = RE_YYYYMMDD.exec(dateString);
-	if (!match) return null;
-
-	const { year, month, day } = match.groups;
-
-	return {
-		year,
-		month: month.padStart(2, '0'),
-		day: day.padStart(2, '0'),
-	};
-}
-
-function parseFuzzyDate(dateString) {
 	// matches month-day-year patterns
 	// e.g. "March 19th, 1984", "Mar. 19, 1984", etc.
 	const RE_MONTH_DAY_YEAR = /(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i;
@@ -38,32 +25,26 @@ function parseFuzzyDate(dateString) {
 	// e.g. "19th March 1984", "19 Mar 1984"
 	const RE_DAY_MONTH_YEAR = /(?<day>\d{1,2})(st|nd|rd|th)?\s+(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<year>\d{4})/i;
 
-	const regexes = [RE_MONTH_DAY_YEAR, RE_DAY_MONTH_YEAR];
+	const regexes = [RE_YYYYMMDD, RE_MONTH_DAY_YEAR, RE_DAY_MONTH_YEAR];
 
 	const monthsMap = {
 		jan: '1', feb: '2', mar: '3', apr: '4', may: '5', jun: '6',
 		jul: '7', aug: '8', sep: '9', oct: '10', nov: '11', dec: '12'
 	};
 
-	let match;
 	for (const regex of regexes) {
-		match = regex.exec(dateString);
-		if (match) break;
+		const match = regex.exec(dateString);
+		if (match) {
+			const { year, month, day } = match.groups;
+			return {
+				year,
+				month: monthsMap[month?.toLowerCase()]?.padStart(2, '0') || month,
+				day: day.padStart(2, '0'),
+			};
+		}
 	}
-	if (!match) return null;
 
-	const { year, month, day } = match.groups;
-
-	return {
-		year: year,
-		month: monthsMap[month.toLowerCase()].padStart(2, '0'),
-		day: day.padStart(2, '0'),
-	};
-}
-
-function parseDate(string) {
-	const result = parseYYYYMMDD(string) ?? parseFuzzyDate(string);
-	return result;
+	return null;
 }
 
 function handleGetDate(tabId, message) {
