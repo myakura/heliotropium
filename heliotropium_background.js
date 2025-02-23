@@ -76,8 +76,9 @@ logDataStore();
 
 function parseDate(dateString) {
 	const patterns = [
-		// "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
-		/(?<year>\d{4})[-\/.年](?<month>\d{1,2})[-\/.月](?<day>\d{1,2})日?/,
+		// matches YYYY-MM-DD-ish patterns
+		// e.g. "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
+		/(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/,
 
 		// matches month-day-year patterns
 		// e.g. "March 19th, 1984", "Mar. 19, 1984", etc.

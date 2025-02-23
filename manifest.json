@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Heliotropium",
-	"version": "0.23.6",
+	"version": "0.23.7",
 	"description": "Check out the date of the page",
 	"icons": {
 		"48": "icons/icon_gray.png",
