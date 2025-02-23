@@ -249,21 +249,20 @@ function validateTabIds(tabIds) {
 }
 
 function formatTabData(tabId, tabData) {
-	let data;
 	if (tabData && tabData.date) {
-		data = {
+		return {
 			tabId,
 			url: tabData.url,
 			originalDateString: tabData.date,
 			date: parseDate(tabData.date)
 		};
 	}
-	data = {
+	return {
 		tabId,
 		url: tabData?.url || 'Unknown URL',
-		originalDateString: 'N/A'
+		originalDateString: 'N/A',
+		date: null
 	};
-	return data;
 }
 
 async function getDatesFromTabs(tabIds) {
