@@ -64,7 +64,7 @@ function handleGetDate(tabId, message) {
 		return;
 	}
 
-	console.log('Parsing date:', message.date);
+	console.log('Parsing date:', `"${message.date}"`);
 	const { date } = message;
 	const parsedDate = parseDate(date);
 
