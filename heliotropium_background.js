@@ -113,42 +113,46 @@ function handleGetDate(tabId, { url, dateString }) {
 
 	if (!dateString) return updateBrowserAction({ tabId });
 
-	tabDataStore.set(url, { tabId, url, dateString });
+	const date = parseDate(dateString);
+	console.log('Parsed date:', date);
+	if (!date) return updateBrowserAction({ tabId });
 
-	console.log('Parsing date:', `"${dateString}"`);
-	const parsedDate = parseDate(dateString);
-
-	if (!parsedDate) {
-		console.log('Unsupported date format.');
-		updateBrowserAction({ tabId });
-		return;
-	}
-
-	console.log('Parsed date:', parsedDate);
-	const { year, month, day } = parsedDate;
+	tabDataStore.set(url, { tabId, url, dateString, date });
 
 	// use M/D when the length is shorter, MMDD otherwise
+	const { year, month, day } = date;
 	const monthDay = `${Number(month)}/${Number(day)}`;
 	const badgeText = monthDay.length < 5 ? monthDay : monthDay.replace('/', '');
+
 	updateBrowserAction({
 		tabId,
 		enabled: true,
 		badgeText,
 		title: `${year}-${month}-${day}`,
 	});
-	console.log('Updated badge:', badgeText);
 }
 
 async function fetchTabDateFromContentScript(tabId) {
 	try {
 		const response = await sendMessage(tabId, { action: 'get-date' });
+
 		if (response) {
-			tabDataStore.set(response.url, { tabId, ...response });
-			return response;
+			const date = parseDate(response.dateString);
+
+			const tabData = {
+				tabId,
+				url: response.url,
+				dateString: response.dateString,
+				date,
+			};
+
+			tabDataStore.set(response.url, tabData);
+			return tabData;
 		}
 	} catch (error) {
 		console.log('Error fetching date:', error);
 	}
+
 	return null;
 }
 
@@ -203,19 +207,19 @@ function validateTabIds(tabIds) {
 }
 
 function formatTabData(tabId, tabData) {
-	if (tabData && tabData.date) {
+	if (tabData) {
 		return {
 			tabId,
 			url: tabData.url,
-			dateString: tabData.date,
-			date: parseDate(tabData.date)
+			dateString: tabData.dateString,
+			date: tabData.date,
 		};
 	}
 	return {
 		tabId,
-		url: tabData?.url || 'Unknown URL',
+		url: 'Unknown URL',
 		dateString: 'N/A',
-		date: null
+		date: null,
 	};
 }
 
