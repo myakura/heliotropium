@@ -122,11 +122,22 @@ function getValueFromElement({ selector, attribute = null, scope = document }) {
 }
 
 /**
- * Finds a publication date from meta elements and specific HTML attributes.
+ * Generic function to find a value from a list of selectors.
+ * @param {Array<object>} selectors - Array of objects {selector, attribute?}
+ * @param {Document|Element} [scope=document]
  * @returns {string|null}
  */
+function findValueFromSelectors(selectors, scope = document) {
+	for (const { selector, attribute } of selectors) {
+		const value = getValueFromElement({ selector, attribute, scope });
+		if (value) return value;
+	}
+	return null;
+}
+
+// Example usage for date elements:
 function findDateFromDateElements() {
-	const dateElements = [
+	const dateSelectors = [
 		{ selector: 'meta[property="article:published_time"]', attribute: 'content' },
 		{ selector: 'meta[name="pubdate"]', attribute: 'content' },
 		{ selector: 'meta[name="creation_date"]', attribute: 'content' },
@@ -135,22 +146,11 @@ function findDateFromDateElements() {
 		{ selector: 'time', attribute: 'datetime' },
 		{ selector: '.bz_comment_time', attribute: 'data-ts' /* WebKit Bugzilla */ },
 	];
-
-	for (const { selector, attribute } of dateElements) {
-		const value = getValueFromElement({ selector, attribute });
-		if (value) {
-			return value;
-		}
-	}
-	return null;
+	return findValueFromSelectors(dateSelectors);
 }
 
-/**
- * Finds a publication date from common date-related elements.
- * @returns {string|null}
- */
 function findDateFromElementContent() {
-	const dateElements = [
+	const contentSelectors = [
 		{ selector: 'time' },
 		{ selector: 'div.date' },
 		{ selector: 'span.date' },
@@ -161,14 +161,7 @@ function findDateFromElementContent() {
 		{ selector: 'devsite-content-footer p:last-child' /* Chrome Developers */ },
 		{ selector: '[class^="ArticleHeader_pubDate__"]' /* Zenn */ },
 	];
-
-	for (const { selector } of dateElements) {
-		const value = getValueFromElement({ selector });
-		if (value) {
-			return value;
-		}
-	}
-	return null;
+	return findValueFromSelectors(contentSelectors);
 }
 
 /**
