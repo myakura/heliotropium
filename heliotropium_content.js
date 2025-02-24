@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * Checks if an object represents a JSON-LD article.
+ * @param {object} object
+ * @returns {boolean}
+ */
 function isJsonLdArticle(object) {
 	const ARTICLE_TYPES = ['Article', 'BlogPosting', 'WebPage'];
 	const type = object?.['@type'];
@@ -9,11 +14,21 @@ function isJsonLdArticle(object) {
 	return ARTICLE_TYPES.some((suffix) => type?.endsWith(suffix));
 }
 
+/**
+ * Checks if an object has a recognized JSON-LD date property.
+ * @param {object} object
+ * @returns {boolean}
+ */
 function hasJsonLdDateProperty(object) {
 	const DATE_PROPERTIES = ['datePublished'];
 	return DATE_PROPERTIES.some((property) => property in object);
 }
 
+/**
+ * Parses the text content of a JSON-LD script element into a JavaScript object.
+ * @param {HTMLScriptElement} script
+ * @returns {object|null}
+ */
 function parseJsonLdScript(script) {
 	try {
 		// yet being invalid per JSON spec, but there are sites putting
@@ -29,6 +44,11 @@ function parseJsonLdScript(script) {
 	}
 }
 
+/**
+ * Extracts a publication date from JSON-LD data.
+ * @param {object} data
+ * @returns {string|null}
+ */
 function findDateInJsonLdData(data) {
 	if (!data) return null;
 
@@ -46,6 +66,10 @@ function findDateInJsonLdData(data) {
 	return null;
 }
 
+/**
+ * Finds a publication date from JSON-LD script elements in the document.
+ * @returns {string|null}
+ */
 function findDateFromJsonLd() {
 	const scripts = [...document.querySelectorAll('script[type="application/ld+json"]')];
 	if (scripts.length === 0) return null;
@@ -81,6 +105,11 @@ function findDateFromJsonLd() {
 	return null;
 }
 
+/**
+ * Retrieves a value from an element based on a selector and optional attribute.
+ * @param {object} options
+ * @returns {string|null}
+ */
 function getValueFromElement({ selector, attribute = null, scope = document }) {
 	const qsArgument = attribute ? `${selector}[${attribute}]` : selector;
 	const match = scope.querySelector(qsArgument);
@@ -92,6 +121,10 @@ function getValueFromElement({ selector, attribute = null, scope = document }) {
 	return value;
 }
 
+/**
+ * Finds a publication date from meta elements and specific HTML attributes.
+ * @returns {string|null}
+ */
 function findDateFromDateElements() {
 	const dateElements = [
 		{ selector: 'meta[property="article:published_time"]', attribute: 'content' },
@@ -112,6 +145,10 @@ function findDateFromDateElements() {
 	return null;
 }
 
+/**
+ * Finds a publication date from common date-related elements.
+ * @returns {string|null}
+ */
 function findDateFromElementContent() {
 	const dateElements = [
 		{ selector: 'time' },
@@ -134,6 +171,10 @@ function findDateFromElementContent() {
 	return null;
 }
 
+/**
+ * Finds a publication date inside an element targeted by the URL hash.
+ * @returns {string|null}
+ */
 function findDateInsideHashTarget() {
 	const hash = location.hash;
 	const hashTarget = (hash !== '') ? document.querySelector(hash) : null;
@@ -157,6 +198,10 @@ function findDateInsideHashTarget() {
 	return null;
 }
 
+/**
+ * Finds a publication date by trying different methods in sequence.
+ * @returns {string|null}
+ */
 function findDate() {
 	const finders = [
 		findDateInsideHashTarget,
@@ -174,6 +219,12 @@ function findDate() {
 	return null;
 }
 
+/**
+ * Handles incoming messages and responds with the extracted date.
+ * @param {object} message
+ * @param {chrome.runtime.MessageSender} sender
+ * @param {Function} sendResponse
+ */
 function handleGetDate(message, sender, sendResponse) {
 	console.log('heliotropium: got a message.');
 	console.log(sender);
