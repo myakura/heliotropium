@@ -27,7 +27,7 @@ function getTab(tabId) {
  * @returns {Promise<boolean>}
  */
 async function isTabReady({ tabId }) {
-	if (!tabId) return false; // Protect against invalid input
+	if (!tabId) return false;
 
 	console.log('Fetching tab', tabId);
 	const tab = await getTab(tabId);
@@ -169,10 +169,9 @@ function handleGetDate(tabId, { url, title, dateString }) {
 	console.log('Parsed date:', date);
 	if (!date) return updateBrowserAction({ tabId });
 
-	// Retrieve existing data if available
 	const existingData = tabDataStore.get(url) || {};
 
-	// Ensure the cache is updated correctly
+	// update cache
 	tabDataStore.set(url, {
 		url,
 		title: title || existingData.title || 'Unknown',
@@ -180,12 +179,10 @@ function handleGetDate(tabId, { url, title, dateString }) {
 		date,
 	});
 
-	// Format badge text
 	const { year, month, day } = date;
 	const monthDay = `${Number(month)}/${Number(day)}`;
 	const badgeText = monthDay.length < 5 ? monthDay : monthDay.replace('/', '');
 
-	// Update browser action UI
 	updateBrowserAction({
 		tabId,
 		enabled: true,
@@ -210,7 +207,7 @@ async function fetchTabDate(tabId, url) {
 			const date = parseDate(dateString);
 
 			const tabData = { url, title, dateString, date };
-			tabDataStore.set(url, tabData); // Store data by URL
+			tabDataStore.set(url, tabData);
 			return tabData;
 		}
 	} catch (error) {
@@ -234,7 +231,7 @@ async function loadTabData(tabId) {
 	if (cachedData) {
 		// Update title if missing
 		if (!cachedData.title) cachedData.title = tab.title;
-		if (cachedData.date) return cachedData; // Return valid cached data
+		if (cachedData.date) return cachedData;
 	}
 
 	// Fetch fresh data if cache is empty
