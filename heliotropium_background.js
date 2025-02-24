@@ -180,6 +180,8 @@ function handleGetDate(tabId, { url, title, dateString }) {
 	});
 
 	const { year, month, day } = date;
+
+	// use M/D when the length is shorter, MMDD otherwise
 	const monthDay = `${Number(month)}/${Number(day)}`;
 	const badgeText = monthDay.length < 5 ? monthDay : monthDay.replace('/', '');
 
