@@ -151,7 +151,14 @@ function parseDate(dateString) {
  * @returns {{ tabId: number | undefined, url: string, title: string, dateString: string, date: object|null }}
  */
 function getOrCreateTabData(url) {
-	return tabDataStore.get(url) || { tabId: undefined, url, title: 'Untitled', dateString: 'N/A', date: null };
+	const result = tabDataStore.get(url) || {
+		tabId: undefined,
+		url,
+		title: 'Untitled',
+		dateString: 'N/A',
+		date: null,
+	};
+	return result;
 }
 
 
