@@ -2,6 +2,12 @@
 
 // utility functions
 
+/**
+ * Retrieves a tab
+ *
+ * @param {number} tabId
+ * @returns {Promise<chrome.tabs.Tab>}
+ */
 function getTab(tabId) {
 	const { promise, resolve, reject } = Promise.withResolvers();
 	chrome.tabs.get(tabId, (tab) => {
@@ -14,8 +20,14 @@ function getTab(tabId) {
 	return promise;
 }
 
-async function isTabReady({ tabId = null }) {
-	if (!tabId) return false;
+/**
+ * Checks if a tab is active, has a valid HTTP/HTTPS URL, and is fully loaded.
+ *
+ * @param {{ tabId: number }} options
+ * @returns {Promise<boolean>}
+ */
+async function isTabReady({ tabId }) {
+	if (!tabId) return false; // Protect against invalid input
 
 	console.log('Fetching tab', tabId);
 	const tab = await getTab(tabId);
@@ -29,6 +41,15 @@ async function isTabReady({ tabId = null }) {
 	return true;
 }
 
+/**
+ * Updates the browser action (extension icon) for a specific tab.
+ *
+ * @param {{ tabId: number, enabled?: boolean, badgeText?: string, title?: string }} options -
+ * Object containing tab ID and optional properties:
+ * - `enabled` (boolean): Whether to enable or disable the browser action.
+ * - `badgeText` (string): The text to display on the badge.
+ * - `title` (string): The title for the browser action tooltip.
+ */
 function updateBrowserAction({ tabId, enabled = false, badgeText = '', title = '' }) {
 	const method = enabled ? 'enable' : 'disable';
 	const icon = enabled
@@ -43,6 +64,13 @@ function updateBrowserAction({ tabId, enabled = false, badgeText = '', title = '
 	chrome.browserAction.setTitle({ tabId, title });
 }
 
+/**
+ * Sends a message to a content script in the specified tab.
+ *
+ * @param {number} tabId
+ * @param {object} message
+ * @returns {Promise<any>}
+ */
 function sendMessage(tabId, message) {
 	const { promise, resolve, reject } = Promise.withResolvers();
 
@@ -77,8 +105,9 @@ logDataStore();
 
 /**
  * Parses a date string into an object with { year, month, day }.
- * @param {string} dateString
- * @returns {object|null}
+ *
+ * @param {string} dateString - The date string to parse.
+ * @returns {{ year: string, month: string, day: string } | null}
  */
 function parseDate(dateString) {
 	const patterns = [
@@ -268,9 +297,6 @@ async function getDatesFromTabs(tabIds) {
 	return results.map((result) => (result.status === 'fulfilled' ? result.value : null)).filter(Boolean);
 }
 
-/**
- * Handles requests from external extensions to retrieve tab dates.
- */
 chrome.runtime.onMessageExternal.addListener(async (message, sender, sendResponse) => {
 	if (message?.action === 'get-dates' && Array.isArray(message.tabIds)) {
 		try {
