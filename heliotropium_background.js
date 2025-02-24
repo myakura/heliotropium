@@ -42,7 +42,7 @@ async function isTabReady({ tabId }) {
 }
 
 /**
- * Updates the browser action (extension icon) for a specific tab.
+ * Updates the action button for a specific tab.
  *
  * @param {{ tabId: number, enabled?: boolean, badgeText?: string, title?: string }} options -
  * Object containing tab ID and optional properties:
@@ -50,18 +50,20 @@ async function isTabReady({ tabId }) {
  * - `badgeText` (string): The text to display on the badge.
  * - `title` (string): The title for the browser action tooltip.
  */
-function updateBrowserAction({ tabId, enabled = false, badgeText = '', title = '' }) {
+function updateAction({ tabId, enabled = false, badgeText = '', title = '' }) {
 	const method = enabled ? 'enable' : 'disable';
 	const icon = enabled
-		? window.matchMedia('(prefers-color-scheme: light)').matches
-			? 'icons/icon_black.png'
-			: 'icons/icon_white.png'
+		? (typeof window !== 'undefined')
+			? (window.matchMedia('(prefers-color-scheme: light)').matches)
+				? 'icons/icon_black.png'
+				: 'icons/icon_white.png'
+			: 'icons/icon_darkgray.png'
 		: 'icons/icon_lightgray.png';
-	chrome.browserAction[method](tabId);
-	chrome.browserAction.setIcon({ tabId, path: icon });
-	chrome.browserAction.setBadgeText({ tabId, text: badgeText });
-	chrome.browserAction.setBadgeBackgroundColor({ tabId, color: '#36f' });
-	chrome.browserAction.setTitle({ tabId, title });
+	chrome.action[method](tabId);
+	chrome.action.setIcon({ tabId, path: icon });
+	chrome.action.setBadgeText({ tabId, text: badgeText });
+	chrome.action.setBadgeBackgroundColor({ tabId, color: '#36f' });
+	chrome.action.setTitle({ tabId, title });
 }
 
 /**
@@ -171,11 +173,11 @@ function getOrCreateTabData(url) {
 function handleGetDate(tabId, { url, title, dateString }) {
 	console.log('Got a message from tab', tabId, url, title, dateString);
 
-	if (!dateString) return updateBrowserAction({ tabId });
+	if (!dateString) return updateAction({ tabId });
 
 	const date = parseDate(dateString);
 	console.log('Parsed date:', date);
-	if (!date) return updateBrowserAction({ tabId });
+	if (!date) return updateAction({ tabId });
 
 	const existingData = tabDataStore.get(url) || {};
 
@@ -194,7 +196,7 @@ function handleGetDate(tabId, { url, title, dateString }) {
 	const monthDay = `${Number(month)}/${Number(day)}`;
 	const badgeText = monthDay.length < 5 ? monthDay : monthDay.replace('/', '');
 
-	updateBrowserAction({
+	updateAction({
 		tabId,
 		enabled: true,
 		badgeText,

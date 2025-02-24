@@ -1,14 +1,27 @@
 {
-	"manifest_version": 2,
+	"manifest_version": 3,
 	"name": "Heliotropium",
-	"version": "0.23.11",
+	"version": "0.24.0",
 	"description": "Check out the date of the page",
 	"icons": {
 		"48": "icons/icon_gray.png",
 		"96": "icons/icon_gray.png"
 	},
+	"theme_icons": [
+		{
+			"light": "icons/icon_lightgray.png",
+			"dark": "icons/icon_darkgray.png",
+			"size": 48
+		},
+		{
+			"light": "icons/icon_lightgray.png",
+			"dark": "icons/icon_darkgray.png",
+			"size": 96
+		}
+	],
 	"background": {
 		"scripts": ["heliotropium_background.js"],
+		"service_worker": "heliotropium_background.js",
 		"persistent": false
 	},
 	"content_scripts": [
@@ -46,7 +59,7 @@
 			"js": ["heliotropium_content.js"]
 		}
 	],
-	"browser_action": {
+	"action": {
 		"default_icon": "icons/icon_lightgray.png"
 	},
 	"permissions": ["tabs"],
