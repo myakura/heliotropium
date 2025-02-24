@@ -66,8 +66,8 @@ const tabDataStore = new Map();
 
 function logDataStore() {
 	console.group(`Current data store: ${tabDataStore.size} items`);
-	for (const [url, { tabId, date }] of tabDataStore) {
-		console.log({ tabId, url, date });
+	for (const [url, { tabId, title, date }] of tabDataStore) {
+		console.log({ tabId, title, url, date });
 	}
 	console.groupEnd();
 }
@@ -119,20 +119,20 @@ function parseDate(dateString) {
 /**
  * Retrieves cached data if available, otherwise returns a default structure.
  * @param {string} url
- * @returns {{url: string, dateString: string, date: object|null}}
+ * @returns {{url: string, title: string, dateString: string, date: object|null}}
  */
 function getOrCreateTabData(url) {
-	return tabDataStore.get(url) || { url, dateString: 'N/A', date: null };
+	return tabDataStore.get(url) || { url, title: 'Untitled', dateString: 'N/A', date: null };
 }
 
 
 /**
  * Handles receiving a date from the content script and updates the cache.
  * @param {number} tabId
- * @param {{url: string, dateString: string}} message
+ * @param {{url: string, title: string, dateString: string}} message
  */
-function handleGetDate(tabId, { url, dateString }) {
-	console.log('Got a message from tab', tabId, url, dateString);
+function handleGetDate(tabId, { url, title, dateString }) {
+	console.log('Got a message from tab', tabId, url, title, dateString);
 
 	if (!dateString) return updateBrowserAction({ tabId });
 
@@ -140,8 +140,16 @@ function handleGetDate(tabId, { url, dateString }) {
 	console.log('Parsed date:', date);
 	if (!date) return updateBrowserAction({ tabId });
 
+	// Retrieve existing data if available
+	const existingData = tabDataStore.get(url) || {};
+
 	// Ensure the cache is updated correctly
-	tabDataStore.set(url, { url, dateString, date });
+	tabDataStore.set(url, {
+		url,
+		title: title || existingData.title || 'Unknown',
+		dateString,
+		date,
+	});
 
 	// Format badge text
 	const { year, month, day } = date;
@@ -169,10 +177,10 @@ async function fetchTabDate(tabId, url) {
 		const response = await sendMessage(tabId, { action: 'get-date' });
 
 		if (response) {
-			const { dateString } = response;
+			const { title, dateString } = response;
 			const date = parseDate(dateString);
 
-			const tabData = { url, dateString, date };
+			const tabData = { url, title, dateString, date };
 			tabDataStore.set(url, tabData); // Store data by URL
 			return tabData;
 		}
@@ -190,16 +198,18 @@ async function fetchTabDate(tabId, url) {
  */
 async function loadTabData(tabId) {
 	const tab = await getTab(tabId);
-	if (!tab || !tab.url) return { url: 'Unknown URL', dateString: 'N/A', date: null };
+	if (!tab || !tab.url) return { url: 'Unknown URL', title: 'Untitled', dateString: 'N/A', date: null };
 
 	// Try cache first
-	if (tabDataStore.has(tab.url)) {
-		const cachedData = tabDataStore.get(tab.url);
+	const cachedData = tabDataStore.get(tab.url);
+	if (cachedData) {
+		// Update title if missing
+		if (!cachedData.title) cachedData.title = tab.title;
 		if (cachedData.date) return cachedData; // Return valid cached data
 	}
 
 	// Fetch fresh data if cache is empty
-	return await fetchTabDate(tabId, tab.url) || { url: tab.url, dateString: 'N/A', date: null };
+	return await fetchTabDate(tabId, tab.url) || { url: tab.url, title: tab.title, dateString: 'N/A', date: null };
 }
 
 
@@ -228,10 +238,10 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 		return;
 	}
 
-	const { id: tabId, url } = sender.tab;
+	const { id: tabId, url, title } = sender.tab;
 	console.log(`Received date for tab ${tabId}:`, message.dateString);
 
-	handleGetDate(tabId, message);
+	handleGetDate(tabId, { ...message, title });
 });
 
 
