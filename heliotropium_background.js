@@ -148,11 +148,12 @@ function parseDate(dateString) {
 /**
  * Retrieves cached data if available, otherwise returns a default structure.
  * @param {string} url
- * @returns {{url: string, title: string, dateString: string, date: object|null}}
+ * @returns {{ tabId: number | undefined, url: string, title: string, dateString: string, date: object|null }}
  */
 function getOrCreateTabData(url) {
-	return tabDataStore.get(url) || { url, title: 'Untitled', dateString: 'N/A', date: null };
+	return tabDataStore.get(url) || { tabId: undefined, url, title: 'Untitled', dateString: 'N/A', date: null };
 }
+
 
 
 /**
@@ -173,6 +174,7 @@ function handleGetDate(tabId, { url, title, dateString }) {
 
 	// update cache
 	tabDataStore.set(url, {
+		tabId,
 		url,
 		title: title || existingData.title || 'Unknown',
 		dateString,
@@ -198,7 +200,7 @@ function handleGetDate(tabId, { url, title, dateString }) {
  * Fetches a fresh date from the content script and updates the cache.
  * @param {number} tabId
  * @param {string} url
- * @returns {Promise<object|null>}
+ * @returns {Promise<{ tabId: number, url: string, title: string, dateString: string, date: object|null } | null>}
  */
 async function fetchTabDate(tabId, url) {
 	try {
@@ -207,8 +209,7 @@ async function fetchTabDate(tabId, url) {
 		if (response) {
 			const { title, dateString } = response;
 			const date = parseDate(dateString);
-
-			const tabData = { url, title, dateString, date };
+			const tabData = { tabId, url, title, dateString, date };
 			tabDataStore.set(url, tabData);
 			return tabData;
 		}
@@ -222,11 +223,13 @@ async function fetchTabDate(tabId, url) {
 /**
  * Loads cached data if available, otherwise fetches a fresh date.
  * @param {number} tabId
- * @returns {Promise<object>}
+ * @returns {Promise<{ tabId: number, url: string, title: string, dateString: string, date: object|null }>}
  */
 async function loadTabData(tabId) {
 	const tab = await getTab(tabId);
-	if (!tab || !tab.url) return { url: 'Unknown URL', title: 'Untitled', dateString: 'N/A', date: null };
+	if (!tab || !tab.url) {
+		return { tabId, url: 'Unknown URL', title: 'Untitled', dateString: 'N/A', date: null };
+	}
 
 	// Try cache first
 	const cachedData = tabDataStore.get(tab.url);
@@ -237,7 +240,15 @@ async function loadTabData(tabId) {
 	}
 
 	// Fetch fresh data if cache is empty
-	return await fetchTabDate(tabId, tab.url) || { url: tab.url, title: tab.title, dateString: 'N/A', date: null };
+	return (
+		await fetchTabDate(tabId, tab.url) || {
+			tabId,
+			url: tab.url,
+			title: tab.title,
+			dateString: 'N/A',
+			date: null,
+		}
+	);
 }
 
 
@@ -275,25 +286,35 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 
 // handling messages from external extensions
 
+/**
+ * Validates tabIds.
+ * @param {Array<any>} tabIds
+ * @returns {boolean}
+ */
 function validateTabIds(tabIds) {
 	return Array.isArray(tabIds) && tabIds.length > 0;
 }
 
+/**
+ * Retrieves dates for multiple tabs.
+ * @param {Array<number>} tabIds
+ * @returns {Promise<Array<{ tabId: number, url: string, title: string, dateString: string, date: object|null }>>}
+ */
 async function getDatesFromTabs(tabIds) {
 	const tabDataPromises = tabIds.map(async (tabId) => {
 		try {
 			if (await isTabReady({ tabId })) {
-				await loadTabData(tabId);
+				return await loadTabData(tabId);
 			}
-			return getOrCreateTabData(tabId);
 		} catch (error) {
 			console.log(`Error processing tab ${tabId}:`, error);
-			return getOrCreateTabData(tabId);
 		}
+		return null;
 	});
-
 	const results = await Promise.allSettled(tabDataPromises);
-	return results.map((result) => (result.status === 'fulfilled' ? result.value : null)).filter(Boolean);
+	return results
+		.map((result) => (result.status === 'fulfilled' ? result.value : null))
+		.filter(Boolean);
 }
 
 chrome.runtime.onMessageExternal.addListener(async (message, sender, sendResponse) => {
