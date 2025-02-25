@@ -57,7 +57,7 @@ function updateAction({ tabId, enabled = false, badgeText = '', title = '' }) {
 			? (window.matchMedia('(prefers-color-scheme: light)').matches)
 				? 'icons/icon_black.png'
 				: 'icons/icon_white.png'
-			: 'icons/icon_darkgray.png'
+			: 'icons/icon_gray.png'
 		: 'icons/icon_lightgray.png';
 	chrome.action[method](tabId);
 	chrome.action.setIcon({ tabId, path: icon });
