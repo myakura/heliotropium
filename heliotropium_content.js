@@ -108,6 +108,9 @@ function findDateFromJsonLd() {
 /**
  * Retrieves a value from an element based on a selector and optional attribute.
  * @param {object} options
+ * @param {string} options.selector
+ * @param {string|null} [options.attribute=null]
+ * @param {Document|Element} [options.scope=document]
  * @returns {string|null}
  */
 function getValueFromElement({ selector, attribute = null, scope = document }) {
@@ -123,7 +126,7 @@ function getValueFromElement({ selector, attribute = null, scope = document }) {
 
 /**
  * Generic function to find a value from a list of selectors.
- * @param {Array<object>} selectors - Array of objects {selector, attribute?}
+ * @param {Array<object>} selectors
  * @param {Document|Element} [scope=document]
  * @returns {string|null}
  */
@@ -135,7 +138,11 @@ function findValueFromSelectors(selectors, scope = document) {
 	return null;
 }
 
-// Example usage for date elements:
+
+/**
+ * Extracts a publication date from common date elements (typically meta tags) in the document.
+ * @returns {string|null}
+ */
 function findDateFromDateElements() {
 	const dateSelectors = [
 		{ selector: 'meta[property="article:published_time"]', attribute: 'content' },
@@ -149,6 +156,10 @@ function findDateFromDateElements() {
 	return findValueFromSelectors(dateSelectors);
 }
 
+/**
+ * Extracts a publication date from visible content elements in the document.
+ * @returns {string|null}
+ */
 function findDateFromElementContent() {
 	const contentSelectors = [
 		{ selector: 'time' },
@@ -165,7 +176,7 @@ function findDateFromElementContent() {
 }
 
 /**
- * Finds a publication date inside an element targeted by the URL hash.
+ * Searches for a publication date within the element targeted by the URL hash.
  * @returns {string|null}
  */
 function findDateInsideHashTarget() {
@@ -192,7 +203,7 @@ function findDateInsideHashTarget() {
 }
 
 /**
- * Finds a publication date by trying different methods in sequence.
+ * Attempts to find a publication date using a sequence of extraction methods.
  * @returns {string|null}
  */
 function findDate() {
