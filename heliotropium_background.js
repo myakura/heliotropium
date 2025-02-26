@@ -156,7 +156,7 @@ function getOrCreateTabData(url) {
 	const result = tabDataStore.get(url) || {
 		tabId: undefined,
 		url,
-		title: 'Untitled',
+		title,
 		dateString: 'N/A',
 		date: null,
 	};
@@ -185,7 +185,7 @@ function handleGetDate(tabId, { url, title, dateString }) {
 	tabDataStore.set(url, {
 		tabId,
 		url,
-		title: title || existingData.title || 'Unknown',
+		title: title || existingData.title || null,
 		dateString,
 		date,
 	});
