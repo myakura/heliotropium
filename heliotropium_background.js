@@ -3,7 +3,7 @@
 // utility functions
 
 /**
- * Retrieves a tab
+ * Retrieves a tab.
  *
  * @param {number} tabId
  * @returns {Promise<chrome.tabs.Tab>}
@@ -12,9 +12,11 @@ function getTab(tabId) {
 	const { promise, resolve, reject } = Promise.withResolvers();
 	chrome.tabs.get(tabId, (tab) => {
 		if (chrome.runtime.lastError) {
-			reject(chrome.runtime.lastError.message);
+			reject(`Error getting tab ${tabId}: ${chrome.runtime.lastError.message}`);
 		}
-		resolve(tab);
+		else {
+			resolve(tab);
+		}
 	});
 
 	return promise;
@@ -28,16 +30,18 @@ function getTab(tabId) {
  */
 async function isTabReady({ tabId }) {
 	if (!tabId) return false;
-
 	console.log('Fetching tab', tabId);
+
 	const tab = await getTab(tabId);
 	if (!tab) return false;
 
 	const { active, url, status } = tab;
+
 	if (!active || !url?.startsWith('http') || status !== 'complete') {
-		console.log(`Tab ${tabId} is not ready.`);
+		console.log(`Tab ${tabId} is not ready. active: ${active}, url: ${url}, status: ${status}`);
 		return false;
 	}
+
 	return true;
 }
 
@@ -79,12 +83,12 @@ function sendMessage(tabId, message) {
 	console.log('Sending message to tab', tabId, message);
 	chrome.tabs.sendMessage(tabId, message, (response) => {
 		if (chrome.runtime.lastError) {
-			reject(chrome.runtime.lastError.message);
+			reject(`Error sending message to tab ${tabId}: ${chrome.runtime.lastError.message}`);
+		} else if (!response) {
+			reject(`No response from content script on tab ${tabId}.`);
+		} else {
+			resolve(response);
 		}
-		if (!response) {
-			reject('No response from content script.');
-		}
-		resolve(response);
 	});
 
 	return promise;
@@ -92,18 +96,35 @@ function sendMessage(tabId, message) {
 
 // extension specific functions
 
+// Using tab IDs as keys so that each tab’s data remains separate.
 const tabDataStore = new Map();
 
 function logDataStore() {
 	console.group(`Current data store: ${tabDataStore.size} items`);
-	for (const [url, { tabId, title, date }] of tabDataStore) {
-		console.log({ tabId, title, url, date });
+	for (const [tabId, { url, title, date, dateString }] of tabDataStore) {
+		console.log({ tabId, title, url, date, dateString });
 	}
 	console.groupEnd();
 }
 
 logDataStore();
 
+/**
+ * Retrieves cached data if available, otherwise returns a default structure.
+ * @param {number} tabId
+ * @param {string} url
+ * @returns {{ tabId: number, url: string, title: string, dateString: string, date: object|null }}
+ */
+function getOrCreateTabData(tabId, url) {
+	const result = tabDataStore.get(tabId) || {
+		tabId,
+		url,
+		title: '',
+		dateString: 'N/A',
+		date: null,
+	};
+	return result;
+}
 
 /**
  * Parses a date string into an object with { year, month, day }.
@@ -133,7 +154,7 @@ function parseDate(dateString) {
 
 	for (const pattern of patterns) {
 		const match = pattern.exec(dateString);
-		if (match) {
+		if (match && match.groups) {
 			const { year, month, day } = match.groups;
 			return {
 				year,
@@ -146,25 +167,6 @@ function parseDate(dateString) {
 	return null;
 }
 
-
-/**
- * Retrieves cached data if available, otherwise returns a default structure.
- * @param {string} url
- * @returns {{ tabId: number | undefined, url: string, title: string, dateString: string, date: object|null }}
- */
-function getOrCreateTabData(url) {
-	const result = tabDataStore.get(url) || {
-		tabId: undefined,
-		url,
-		title,
-		dateString: 'N/A',
-		date: null,
-	};
-	return result;
-}
-
-
-
 /**
  * Handles receiving a date from the content script and updates the cache.
  * @param {number} tabId
@@ -172,27 +174,25 @@ function getOrCreateTabData(url) {
  */
 function handleGetDate(tabId, { url, title, dateString }) {
 	console.log('Got a message from tab', tabId, url, title, dateString);
-
 	if (!dateString) return updateAction({ tabId });
 
 	const date = parseDate(dateString);
 	console.log('Parsed date:', date);
 	if (!date) return updateAction({ tabId });
 
-	const existingData = tabDataStore.get(url) || {};
+	const existingData = getOrCreateTabData(tabId, url);
 
 	// update cache
-	tabDataStore.set(url, {
-		tabId,
-		url,
-		title: title || existingData.title || null,
+	tabDataStore.set(tabId, {
+		...existingData,
+		title: title || existingData.title,
 		dateString,
 		date,
 	});
 
 	const { year, month, day } = date;
 
-	// use M/D when the length is shorter, MMDD otherwise
+	// Use M/D when the length is shorter, or MMDD otherwise.
 	const monthDay = `${Number(month)}/${Number(day)}`;
 	const badgeText = monthDay.length < 5 ? monthDay : monthDay.replace('/', '');
 
@@ -203,7 +203,6 @@ function handleGetDate(tabId, { url, title, dateString }) {
 		title: `${year}-${month}-${day}`,
 	});
 }
-
 
 /**
  * Fetches a fresh date from the content script and updates the cache.
@@ -216,15 +215,16 @@ async function fetchTabDate(tabId, url) {
 		const response = await sendMessage(tabId, { action: 'get-date' });
 
 		if (response) {
-			console.log('Received response from tab', tabId);
-			console.log(response);
+			console.log('Received response from tab', tabId, response);
 			const { title, dateString } = response;
 			const date = parseDate(dateString);
 			const tabData = { tabId, url, title, dateString, date };
-			tabDataStore.set(url, tabData);
+			tabDataStore.set(tabId, tabData);
+
 			return tabData;
 		}
-	} catch (error) {
+	}
+	catch (error) {
 		console.log(`Error fetching date from content script for tab ${tabId}:`, error);
 	}
 
@@ -238,19 +238,24 @@ async function fetchTabDate(tabId, url) {
  */
 async function loadTabData(tabId) {
 	const tab = await getTab(tabId);
+
 	if (!tab || !tab.url) {
 		return { tabId, url: 'Unknown URL', title: 'Untitled', dateString: 'N/A', date: null };
 	}
 
-	// Try cache first
-	const cachedData = tabDataStore.get(tab.url);
+	// Try cache first using tabId as key.
+	const cachedData = tabDataStore.get(tab.id);
 	if (cachedData) {
-		// Update title if missing
-		if (!cachedData.title) cachedData.title = tab.title;
-		if (cachedData.date) return cachedData;
+		// Update title if missing.
+		if (!cachedData.title) {
+			cachedData.title = tab.title
+		};
+		if (cachedData.date) {
+			return cachedData;
+		};
 	}
 
-	// Fetch fresh data if cache is empty
+	// Fetch fresh data if cache is empty or date not available.
 	return (
 		await fetchTabDate(tabId, tab.url) || {
 			tabId,
@@ -262,15 +267,18 @@ async function loadTabData(tabId) {
 	);
 }
 
-
 /**
  * Processes a tab event (activation/update) by ensuring its date is loaded.
  * @param {number} tabId
  */
 async function handleTabEvent(tabId) {
 	if (!await isTabReady({ tabId })) return;
+
 	const data = await loadTabData(tabId);
-	if (data) handleGetDate(tabId, data);
+
+	if (data) {
+		handleGetDate(tabId, data)
+	};
 }
 
 // Event listeners for tab events
@@ -281,7 +289,7 @@ chrome.tabs.onHighlighted.addListener(({ tabIds }) => {
 	logDataStore();
 });
 
-// event listener for messages from content scripts
+// Event listener for messages from content scripts.
 chrome.runtime.onMessage.addListener((message, sender) => {
 	if (!sender.tab) {
 		console.log('No tab information in sender.');
@@ -291,11 +299,10 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 	const { id: tabId, url, title } = sender.tab;
 	console.log(`Received date for tab ${tabId}:`, message.dateString);
 
-	handleGetDate(tabId, { ...message, title });
+	handleGetDate(tabId, { ...message, title, url });
 });
 
-
-// handling messages from external extensions
+// Handling messages from external extensions
 
 /**
  * Validates tabIds.
@@ -317,29 +324,36 @@ async function getDatesFromTabs(tabIds) {
 			if (await isTabReady({ tabId })) {
 				return await loadTabData(tabId);
 			}
-		} catch (error) {
+		}
+		catch (error) {
 			console.log(`Error processing tab ${tabId}:`, error);
 		}
 		return null;
 	});
+
 	const results = await Promise.allSettled(tabDataPromises);
+
 	return results
 		.map((result) => (result.status === 'fulfilled' ? result.value : null))
 		.filter(Boolean);
 }
 
 chrome.runtime.onMessageExternal.addListener(async (message, sender, sendResponse) => {
-	if (message?.action === 'get-dates' && Array.isArray(message.tabIds)) {
+	if (message?.action === 'get-dates' && validateTabIds(message.tabIds)) {
 		try {
 			console.log('External extension requested dates for tabs:', message.tabIds);
 			const results = await Promise.all(message.tabIds.map(loadTabData));
 			console.log('Sending response back:', { data: results });
 			sendResponse({ data: results });
-		} catch (error) {
+		}
+		catch (error) {
 			console.error('Error processing external request:', error);
 			sendResponse({ error: 'Internal processing error' });
 		}
-		// keep the channel open for async response
+		// Keep the channel open for async response.
 		return true;
+	}
+	else {
+		sendResponse({ error: 'Invalid request: missing or invalid tabIds.' });
 	}
 });
