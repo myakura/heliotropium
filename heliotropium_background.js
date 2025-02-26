@@ -331,6 +331,7 @@ chrome.runtime.onMessageExternal.addListener(async (message, sender, sendRespons
 		try {
 			console.log('External extension requested dates for tabs:', message.tabIds);
 			const results = await Promise.all(message.tabIds.map(loadTabData));
+			console.log('Sending response back:', { data: results });
 			sendResponse({ data: results });
 		} catch (error) {
 			console.error('Error processing external request:', error);
