@@ -216,6 +216,8 @@ async function fetchTabDate(tabId, url) {
 		const response = await sendMessage(tabId, { action: 'get-date' });
 
 		if (response) {
+			console.log('Received response from tab', tabId);
+			console.log(response);
 			const { title, dateString } = response;
 			const date = parseDate(dateString);
 			const tabData = { tabId, url, title, dateString, date };
