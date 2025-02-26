@@ -31,11 +31,9 @@ function hasJsonLdDateProperty(object) {
  */
 function parseJsonLdScript(script) {
 	try {
-		// yet being invalid per JSON spec, but there are sites putting
-		// unescaped newlines in JSON-LD scripts, so just remove them.
+		// Some sites use unescaped newlines in JSON-LD scripts; remove them.
 		const content = script.textContent?.replaceAll('\n', '') || '';
-		// FIXME: some sites even has `<!CDATA[...]]>` in script element :(
-
+		// FIXME: some sites even have `<!CDATA[...]]>` in script element.
 		return JSON.parse(content);
 	}
 	catch (error) {
@@ -57,8 +55,7 @@ function findDateInJsonLdData(data) {
 		return data.datePublished;
 	}
 
-	// YouTube
-	// { "@type": "VideoObject", "uploadDate": "..." }
+	// YouTube: { "@type": "VideoObject", "uploadDate": "..." }
 	if (data?.['@type'] === 'VideoObject') {
 		return data.uploadDate;
 	}
@@ -75,7 +72,6 @@ function findDateFromJsonLd() {
 	if (scripts.length === 0) return null;
 
 	console.log('heliotropium: found JSON-LD scripts.', scripts);
-
 	for (const script of scripts) {
 		const data = parseJsonLdScript(script);
 		if (!data) continue;
@@ -137,7 +133,6 @@ function findValueFromSelectors(selectors, scope = document) {
 	}
 	return null;
 }
-
 
 /**
  * Extracts a publication date from common date elements (typically meta tags) in the document.
