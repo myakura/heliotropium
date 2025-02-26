@@ -242,7 +242,11 @@ function handleGetDate(message, sender, sendResponse) {
 		return;
 	}
 
-	const response = { dateString, url: location.href };
+	const response = {
+		url: location.href,
+		title: document.title,
+		dateString,
+	};
 	console.log('heliotropium: sending response.', response);
 	sendResponse(response);
 }
