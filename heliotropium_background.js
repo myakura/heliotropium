@@ -50,30 +50,6 @@ function updateAction({ tabId, enabled = false, badgeText = '', title = '' }) {
 	chrome.action.setTitle({ tabId, title });
 }
 
-/**
- * Sends a message to a content script in the specified tab.
- *
- * @param {number} tabId
- * @param {object} message
- * @returns {Promise<any>}
- */
-function sendMessage(tabId, message) {
-	const { promise, resolve, reject } = Promise.withResolvers();
-
-	console.log('Sending message to tab', tabId, message);
-	chrome.tabs.sendMessage(tabId, message, (response) => {
-		if (chrome.runtime.lastError) {
-			reject(`Error sending message to tab ${tabId}: ${chrome.runtime.lastError.message}`);
-		} else if (!response) {
-			reject(`No response from content script on tab ${tabId}.`);
-		} else {
-			resolve(response);
-		}
-	});
-
-	return promise;
-}
-
 // extension specific functions
 
 // Using tab IDs as keys so that each tab’s data remains separate.
@@ -192,7 +168,7 @@ function handleGetDate(tabId, { url, title, dateString }) {
  */
 async function fetchTabDate(tabId, url) {
 	try {
-		const response = await sendMessage(tabId, { action: 'get-date' });
+		const response = await chrome.tabs.sendMessage(tabId, { action: 'get-date' });
 
 		if (response) {
 			console.log('Received response from tab', tabId, response);
