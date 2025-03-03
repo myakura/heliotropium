@@ -3,26 +3,6 @@
 // utility functions
 
 /**
- * Retrieves a tab.
- *
- * @param {number} tabId
- * @returns {Promise<chrome.tabs.Tab>}
- */
-function getTab(tabId) {
-	const { promise, resolve, reject } = Promise.withResolvers();
-	chrome.tabs.get(tabId, (tab) => {
-		if (chrome.runtime.lastError) {
-			reject(`Error getting tab ${tabId}: ${chrome.runtime.lastError.message}`);
-		}
-		else {
-			resolve(tab);
-		}
-	});
-
-	return promise;
-}
-
-/**
  * Checks if a tab is active, has a valid HTTP/HTTPS URL, and is fully loaded.
  *
  * @param {{ tabId: number }} options
@@ -32,7 +12,7 @@ async function isTabReady({ tabId }) {
 	if (!tabId) return false;
 	console.log('Fetching tab', tabId);
 
-	const tab = await getTab(tabId);
+	const tab = await chrome.tabs.get(tabId);
 	if (!tab) return false;
 
 	const { active, url, status } = tab;
@@ -237,7 +217,7 @@ async function fetchTabDate(tabId, url) {
  * @returns {Promise<{ tabId: number, url: string, title: string, dateString: string, date: object|null }>}
  */
 async function loadTabData(tabId) {
-	const tab = await getTab(tabId);
+	const tab = await chrome.tabs.get(tabId);
 
 	if (!tab || !tab.url) {
 		return { tabId, url: 'Unknown URL', title: 'Untitled', dateString: 'N/A', date: null };
