@@ -261,15 +261,6 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 // Handling messages from external extensions
 
 /**
- * Validates tabIds.
- * @param {Array<any>} tabIds
- * @returns {boolean}
- */
-function validateTabIds(tabIds) {
-	return Array.isArray(tabIds) && tabIds.length > 0;
-}
-
-/**
  * Retrieves dates for multiple tabs.
  * @param {Array<number>} tabIds
  * @returns {Promise<Array<{ tabId: number, url: string, title: string, dateString: string, date: object|null }>>}
@@ -295,7 +286,7 @@ async function getDatesFromTabs(tabIds) {
 }
 
 chrome.runtime.onMessageExternal.addListener(async (message, sender, sendResponse) => {
-	if (message?.action === 'get-dates' && validateTabIds(message.tabIds)) {
+	if (message?.action === 'get-dates' && Array.isArray(message.tabIds) && message.tabIds.length > 0) {
 		try {
 			console.log('External extension requested dates for tabs:', message.tabIds);
 			const results = await Promise.all(message.tabIds.map(loadTabData));
