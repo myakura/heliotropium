@@ -297,10 +297,10 @@ chrome.runtime.onMessageExternal.addListener(async (message, sender, sendRespons
 			console.error('Error processing external request:', error);
 			sendResponse({ error: 'Internal processing error' });
 		}
-		// Keep the channel open for async response.
-		return true;
 	}
 	else {
 		sendResponse({ error: 'Invalid request: missing or invalid tabIds.' });
 	}
+	// Keep the channel open for async response.
+	return true;
 });
