@@ -34,7 +34,7 @@ async function isTabReady({ tabId }) {
  * - `badgeText` (string): The text to display on the badge.
  * - `title` (string): The title for the browser action tooltip.
  */
-function updateAction({ tabId, enabled = false, badgeText = '', title = '' }) {
+async function updateAction({ tabId, enabled = false, badgeText = '', title = '' }) {
 	const method = enabled ? 'enable' : 'disable';
 	const icon = enabled
 		? (typeof window !== 'undefined')
@@ -43,11 +43,11 @@ function updateAction({ tabId, enabled = false, badgeText = '', title = '' }) {
 				: 'icons/icon_white.png'
 			: 'icons/icon_gray.png'
 		: 'icons/icon_lightgray.png';
-	chrome.action[method](tabId);
-	chrome.action.setIcon({ tabId, path: icon });
-	chrome.action.setBadgeText({ tabId, text: badgeText });
-	chrome.action.setBadgeBackgroundColor({ tabId, color: '#36f' });
-	chrome.action.setTitle({ tabId, title });
+	await chrome.action[method](tabId);
+	await chrome.action.setIcon({ tabId, path: icon });
+	await chrome.action.setBadgeText({ tabId, text: badgeText });
+	await chrome.action.setBadgeBackgroundColor({ tabId, color: '#36f' });
+	await chrome.action.setTitle({ tabId, title });
 }
 
 // extension specific functions
@@ -128,13 +128,13 @@ function parseDate(dateString) {
  * @param {number} tabId
  * @param {{url: string, title: string, dateString: string}} message
  */
-function handleGetDate(tabId, { url, title, dateString }) {
+async function handleGetDate(tabId, { url, title, dateString }) {
 	console.log('Got a message from tab', tabId, url, title, dateString);
-	if (!dateString) return updateAction({ tabId });
+	if (!dateString) return await updateAction({ tabId });
 
 	const date = parseDate(dateString);
 	console.log('Parsed date:', date);
-	if (!date) return updateAction({ tabId });
+	if (!date) return await updateAction({ tabId });
 
 	const existingData = getOrCreateTabData(tabId, url);
 
@@ -152,7 +152,7 @@ function handleGetDate(tabId, { url, title, dateString }) {
 	const monthDay = `${Number(month)}/${Number(day)}`;
 	const badgeText = monthDay.length < 5 ? monthDay : monthDay.replace('/', '');
 
-	updateAction({
+	await updateAction({
 		tabId,
 		enabled: true,
 		badgeText,
@@ -233,20 +233,20 @@ async function handleTabEvent(tabId) {
 	const data = await loadTabData(tabId);
 
 	if (data) {
-		handleGetDate(tabId, data)
+		await handleGetDate(tabId, data)
 	};
 }
 
 // Event listeners for tab events
-chrome.tabs.onActivated.addListener(({ tabId }) => handleTabEvent(tabId));
-chrome.tabs.onUpdated.addListener((tabId) => handleTabEvent(tabId));
+chrome.tabs.onActivated.addListener(async ({ tabId }) => await handleTabEvent(tabId));
+chrome.tabs.onUpdated.addListener(async (tabId) => await handleTabEvent(tabId));
 chrome.tabs.onHighlighted.addListener(({ tabIds }) => {
 	console.log('Tabs highlighted', tabIds);
 	logDataStore();
 });
 
 // Event listener for messages from content scripts.
-chrome.runtime.onMessage.addListener((message, sender) => {
+chrome.runtime.onMessage.addListener(async (message, sender) => {
 	if (!sender.tab) {
 		console.log('No tab information in sender.');
 		return;
@@ -255,7 +255,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 	const { id: tabId, url, title } = sender.tab;
 	console.log(`Received date for tab ${tabId}:`, message.dateString);
 
-	handleGetDate(tabId, { ...message, title, url });
+	await handleGetDate(tabId, { ...message, title, url });
 });
 
 // Handling messages from external extensions
