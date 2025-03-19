@@ -165,7 +165,7 @@ function findDateFromElementContent() {
 		{ selector: 'p.gargardate' /* Google Search Central Blog */ },
 		{ selector: '.wd-pubdates' /* Chrome Developers, web.dev */ },
 		{ selector: 'devsite-content-footer p:last-child' /* Chrome Developers */ },
-		{ selector: '[class^="ArticleHeader_pubDate__"]' /* Zenn */ },
+		{ selector: '[class^="ArticleHeader_pubDate__"] [class^="ArticleHeader_num__"]' /* Zenn */ },
 	];
 	return findValueFromSelectors(contentSelectors);
 }
