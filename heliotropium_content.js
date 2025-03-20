@@ -141,6 +141,7 @@ function findValueFromSelectors(selectors, scope = document) {
 function findDateFromDateElements() {
 	const dateSelectors = [
 		{ selector: 'meta[property="article:published_time"]', attribute: 'content' },
+		{ selector: 'meta[property="og:published_time"]', attribute: 'content' },
 		{ selector: 'meta[name="pubdate"]', attribute: 'content' },
 		{ selector: 'meta[name="creation_date"]', attribute: 'content' },
 		{ selector: 'meta[name="date"]', attribute: 'content' },
