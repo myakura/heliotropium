@@ -52,36 +52,6 @@ async function updateAction({ tabId, enabled = false, badgeText = '', title = ''
 
 // extension specific functions
 
-// Using tab IDs as keys so that each tab’s data remains separate.
-const tabDataStore = new Map();
-
-function logDataStore() {
-	console.group(`Current data store: ${tabDataStore.size} items`);
-	for (const [tabId, { url, title, date, dateString }] of tabDataStore) {
-		console.log({ tabId, title, url, date, dateString });
-	}
-	console.groupEnd();
-}
-
-logDataStore();
-
-/**
- * Retrieves cached data if available, otherwise returns a default structure.
- * @param {number} tabId
- * @param {string} url
- * @returns {{ tabId: number, url: string, title: string, dateString: string, date: object|null }}
- */
-function getOrCreateTabData(tabId, url) {
-	const result = tabDataStore.get(tabId) || {
-		tabId,
-		url,
-		title: '',
-		dateString: 'N/A',
-		date: null,
-	};
-	return result;
-}
-
 /**
  * Parses a date string into an object with { year, month, day }.
  *
@@ -124,31 +94,21 @@ function parseDate(dateString) {
 }
 
 /**
- * Handles receiving a date from the content script and updates the cache.
+ * Handles receiving a date from the content script or fetched data.
  * @param {number} tabId
- * @param {{url: string, title: string, dateString: string}} message
+ * @param {{url: string, title: string, dateString: string}} data
  */
 async function handleGetDate(tabId, { url, title, dateString }) {
-	console.log('Got a message from tab', tabId, url, title, dateString);
+	console.log('Handling date for tab', tabId, url, title, dateString);
 	if (!dateString) return await updateAction({ tabId });
 
 	const date = parseDate(dateString);
 	console.log('Parsed date:', date);
 	if (!date) return await updateAction({ tabId });
 
-	const existingData = getOrCreateTabData(tabId, url);
-
-	// update cache
-	tabDataStore.set(tabId, {
-		...existingData,
-		title: title || existingData.title,
-		dateString,
-		date,
-	});
-
 	const { year, month, day } = date;
 
-	// Use M/D when the length is shorter, or MMDD otherwise.
+	// Prefers shorter M/D to fit in the badge, MMDD otherwise.
 	const monthDay = `${Number(month)}/${Number(day)}`;
 	const badgeText = monthDay.length < 5 ? monthDay : monthDay.replace('/', '');
 
@@ -161,7 +121,7 @@ async function handleGetDate(tabId, { url, title, dateString }) {
 }
 
 /**
- * Fetches a fresh date from the content script and updates the cache.
+ * Fetches a fresh date from the content script.
  * @param {number} tabId
  * @param {string} url
  * @returns {Promise<{ tabId: number, url: string, title: string, dateString: string, date: object|null } | null>}
@@ -174,10 +134,8 @@ async function fetchTabDate(tabId, url) {
 			console.log('Received response from tab', tabId, response);
 			const { title, dateString } = response;
 			const date = parseDate(dateString);
-			const tabData = { tabId, url, title, dateString, date };
-			tabDataStore.set(tabId, tabData);
 
-			return tabData;
+			return { tabId, url, title, dateString, date };
 		}
 	}
 	catch (error) {
@@ -188,7 +146,7 @@ async function fetchTabDate(tabId, url) {
 }
 
 /**
- * Loads cached data if available, otherwise fetches a fresh date.
+ * Loads tab data by fetching a fresh date from the content script.
  * @param {number} tabId
  * @returns {Promise<{ tabId: number, url: string, title: string, dateString: string, date: object|null }>}
  */
@@ -196,27 +154,21 @@ async function loadTabData(tabId) {
 	const tab = await chrome.tabs.get(tabId);
 
 	if (!tab || !tab.url) {
-		return { tabId, url: 'Unknown URL', title: 'Untitled', dateString: 'N/A', date: null };
-	}
-
-	// Try cache first using tabId as key.
-	const cachedData = tabDataStore.get(tab.id);
-	if (cachedData) {
-		// Update title if missing.
-		if (!cachedData.title) {
-			cachedData.title = tab.title
-		};
-		if (cachedData.date) {
-			return cachedData;
+		return {
+			tabId,
+			url: 'Unknown URL',
+			title: 'Untitled',
+			dateString: 'N/A',
+			date: null,
 		};
 	}
 
-	// Fetch fresh data if cache is empty or date not available.
+	// Always fetch fresh data
 	return (
 		await fetchTabDate(tabId, tab.url) || {
 			tabId,
 			url: tab.url,
-			title: tab.title,
+			title: tab.title || 'Untitled',
 			dateString: 'N/A',
 			date: null,
 		}
@@ -224,25 +176,38 @@ async function loadTabData(tabId) {
 }
 
 /**
- * Processes a tab event (activation/update) by ensuring its date is loaded.
+ * Processes a tab event (activation/update) by ensuring its date is loaded and action updated.
  * @param {number} tabId
  */
 async function handleTabEvent(tabId) {
-	if (!await isTabReady({ tabId })) return;
+	if (!await isTabReady({ tabId })) {
+		// If tab is not ready, disable the action
+		await updateAction({ tabId });
+		return;
+	}
 
 	const data = await loadTabData(tabId);
 
 	if (data) {
-		await handleGetDate(tabId, data)
-	};
+		await handleGetDate(tabId, data);
+	}
+	else {
+		// If loading data fails, disable the action
+		await updateAction({ tabId });
+	}
 }
 
 // Event listeners for tab events
 chrome.tabs.onActivated.addListener(async ({ tabId }) => await handleTabEvent(tabId));
-chrome.tabs.onUpdated.addListener(async (tabId) => await handleTabEvent(tabId));
-chrome.tabs.onHighlighted.addListener(({ tabIds }) => {
-	console.log('Tabs highlighted', tabIds);
-	logDataStore();
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+	// Only run on status complete to avoid multiple triggers and ensure content script is ready
+	if (changeInfo.status === 'complete' && tab.url?.startsWith('http')) {
+		await handleTabEvent(tabId);
+	}
+	else if (changeInfo.status === 'loading') {
+		// Optionally disable action while loading
+		await updateAction({ tabId });
+	}
 });
 
 // Event listener for messages from content scripts.
@@ -253,36 +218,45 @@ chrome.runtime.onMessage.addListener(async (message, sender) => {
 	}
 
 	const { id: tabId, url, title } = sender.tab;
-	console.log(`Received date for tab ${tabId}:`, message.dateString);
+	console.log(`Received message from tab ${tabId}:`, message);
 
-	await handleGetDate(tabId, { ...message, title, url });
+	// Directly handle the received data without caching
+	await handleGetDate(tabId, { ...message, title: title || 'Untitled', url });
 });
 
 // Handling messages from external extensions
 
 /**
- * Retrieves dates for multiple tabs.
+ * Retrieves dates for multiple tabs by fetching fresh data for each.
  * @param {Array<number>} tabIds
  * @returns {Promise<Array<{ tabId: number, url: string, title: string, dateString: string, date: object|null }>>}
  */
 async function getDatesFromTabs(tabIds) {
 	const tabDataPromises = tabIds.map(async (tabId) => {
 		try {
+			// Check readiness before attempting to load/fetch data
 			if (await isTabReady({ tabId })) {
 				return await loadTabData(tabId);
+			}
+			else {
+				// If tab is not ready, return a default structure
+				const tab = await chrome.tabs.get(tabId).catch(() => null); // Get tab info if possible
+				return { tabId, url: tab?.url || 'Unknown URL', title: tab?.title || 'Untitled', dateString: 'N/A', date: null };
 			}
 		}
 		catch (error) {
 			console.log(`Error processing tab ${tabId}:`, error);
+			// Return a default structure on error
+			const tab = await chrome.tabs.get(tabId).catch(() => null);
+			return { tabId, url: tab?.url || 'Unknown URL', title: tab?.title || 'Untitled', dateString: 'N/A', date: null };
 		}
-		return null;
 	});
 
-	const results = await Promise.allSettled(tabDataPromises);
+	// Use Promise.all directly as getDatesFromTabs is async
+	const results = await Promise.all(tabDataPromises);
 
-	return results
-		.map((result) => (result.status === 'fulfilled' ? result.value : null))
-		.filter(Boolean);
+	// Filter out nulls just in case, though the logic above aims to always return an object
+	return results.filter(Boolean);
 }
 
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
