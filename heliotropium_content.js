@@ -176,7 +176,15 @@ function findDateFromElementContent() {
  */
 function findDateInsideHashTarget() {
 	const hash = location.hash;
-	const hashTarget = (hash !== '') ? document.querySelector(hash) : null;
+	if (!hash) return null;
+
+	let hashTarget = null;
+	try {
+		const escapedHash = CSS.escape(hash);
+		hashTarget = document.querySelector(escapedHash);
+	} catch (error) {
+		console.warn(`heliotropium: invalid hash selector "${hash}".`, error);
+	}
 	if (!hashTarget) return null;
 
 	const dateElements = [
