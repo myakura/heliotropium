@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Heliotropium",
-	"version": "0.25.1",
+	"version": "0.26.0",
 	"description": "Check out the date of the page",
 	"icons": {
 		"48": "icons/icon_gray.png",
@@ -21,7 +21,6 @@
 				"https://www.amazon.com/*",
 				"https://www.amazon.co.jp/*",
 				"https://www.facebook.com/*",
-				"https://x.com/*",
 				"https://*.wikipedia.org/*"
 			],
 			"exclude_globs": [
