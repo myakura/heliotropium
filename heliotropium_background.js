@@ -241,14 +241,26 @@ async function getDatesFromTabs(tabIds) {
 			else {
 				// If tab is not ready, return a default structure
 				const tab = await chrome.tabs.get(tabId).catch(() => null); // Get tab info if possible
-				return { tabId, url: tab?.url || 'Unknown URL', title: tab?.title || 'Untitled', dateString: 'N/A', date: null };
+				return {
+					tabId,
+					url: tab?.url || 'Unknown URL',
+					title: tab?.title || 'Untitled',
+					dateString: 'N/A',
+					date: null,
+				};
 			}
 		}
 		catch (error) {
 			console.log(`Error processing tab ${tabId}:`, error);
 			// Return a default structure on error
 			const tab = await chrome.tabs.get(tabId).catch(() => null);
-			return { tabId, url: tab?.url || 'Unknown URL', title: tab?.title || 'Untitled', dateString: 'N/A', date: null };
+			return {
+				tabId,
+				url: tab?.url || 'Unknown URL',
+				title: tab?.title || 'Untitled',
+				dateString: 'N/A',
+				date: null,
+			};
 		}
 	});
 
