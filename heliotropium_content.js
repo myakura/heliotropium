@@ -161,6 +161,7 @@ function findDateFromElementContent() {
 		{ selector: 'time' },
 		{ selector: 'div.date' },
 		{ selector: 'span.date' },
+		{ selector: 'p.date' },
 		{ selector: '.pubdate' },
 		{ selector: '.post_date' },
 		{ selector: 'p.gargardate' /* Google Search Central Blog */ },
