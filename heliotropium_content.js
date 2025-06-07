@@ -159,9 +159,7 @@ function findDateFromDateElements() {
 function findDateFromElementContent() {
 	const contentSelectors = [
 		{ selector: 'time' },
-		{ selector: 'div.date' },
-		{ selector: 'span.date' },
-		{ selector: 'p.date' },
+		{ selector: '.date' },
 		{ selector: '.pubdate' },
 		{ selector: '.post_date' },
 		{ selector: 'p.gargardate' /* Google Search Central Blog */ },
@@ -193,8 +191,7 @@ function findDateInsideHashTarget() {
 		{ selector: 'relative-time[datetime]', attribute: 'datetime' },
 		{ selector: 'time[datetime]', attribute: 'datetime' },
 		{ selector: 'time' },
-		{ selector: 'div.date' },
-		{ selector: 'span.date' },
+		{ selector: '.date' },
 	];
 
 	for (const { selector, attribute } of dateElements) {
