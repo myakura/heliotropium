@@ -180,8 +180,13 @@ function findDateInsideHashTarget() {
 
 	let hashTarget = null;
 	try {
-		const escapedHash = CSS.escape(hash);
-		hashTarget = document.querySelector(escapedHash);
+		// The hash property includes the '#'. We can often use it directly.
+		// To be fully robust against IDs with special characters (e.g., "item.1"),
+		// we escape the ID part (everything after the '#').
+		const hashId = hash.substring(1);
+		if (hashId) {
+			hashTarget = document.querySelector('#' + CSS.escape(hashId));
+		}
 	} catch (error) {
 		console.warn(`heliotropium: invalid hash selector "${hash}".`, error);
 	}
