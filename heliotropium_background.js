@@ -198,15 +198,17 @@ async function handleTabEvent(tabId) {
 }
 
 // Event listeners for tab events
-chrome.tabs.onActivated.addListener(async ({ tabId }) => await handleTabEvent(tabId));
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+	await handleTabEvent(tabId);
+});
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-	// Only run on status complete to avoid multiple triggers and ensure content script is ready
+	// We only need to act once the page is fully loaded and ready.
 	if (changeInfo.status === 'complete' && tab.url?.startsWith('http')) {
 		await handleTabEvent(tabId);
 	}
+	// When a tab starts loading, we can disable the action to give immediate feedback.
 	else if (changeInfo.status === 'loading') {
-		// Optionally disable action while loading
-		await updateAction({ tabId });
+		await updateAction({ tabId, enabled: false });
 	}
 });
 
