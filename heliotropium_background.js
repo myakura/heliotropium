@@ -277,10 +277,10 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
 	if (message?.action === 'get-dates' && Array.isArray(message.tabIds) && message.tabIds.length > 0) {
 		console.log('External extension requested dates for tabs:', message.tabIds);
 
-		// Handle the promise chain without async/await
-		// Note: it needs to be a non-async function to make it work in Firefox
+		// Use the more robust getDatesFromTabs function.
+		// This respects Firefox's requirement to return true and use a promise chain.
 		// https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/onMessage#sending_an_asynchronous_response_using_sendresponse
-		Promise.all(message.tabIds.map(loadTabData))
+		getDatesFromTabs(message.tabIds)
 			.then(results => {
 				console.log('Sending response back:', { data: results });
 				sendResponse({ data: results });
@@ -289,11 +289,12 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
 				console.error('Error processing external request:', error);
 				sendResponse({ error: 'Internal processing error' });
 			});
-	}
-	else {
-		sendResponse({ error: 'Invalid request: missing or invalid tabIds.' });
+
+		// Return true to keep the message channel open for the asynchronous response.
+		return true;
 	}
 
-	// Keep the channel open for async response
-	return true;
+	// Handle invalid requests immediately.
+	sendResponse({ error: 'Invalid request: missing or invalid tabIds.' });
+	// No "return true" here as the response is synchronous.
 });
