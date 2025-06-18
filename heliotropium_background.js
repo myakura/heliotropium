@@ -203,7 +203,7 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 });
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 	// We only need to act once the page is fully loaded and ready.
-	if (changeInfo.status === 'complete' && tab.url?.startsWith('http')) {
+	if (changeInfo.status === 'complete') {
 		await handleTabEvent(tabId);
 	}
 	// When a tab starts loading, we can disable the action to give immediate feedback.
