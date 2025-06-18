@@ -274,13 +274,15 @@ async function getDatesFromTabs(tabIds) {
 }
 
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
-	if (message?.action === 'get-dates' && Array.isArray(message.tabIds) && message.tabIds.length > 0) {
-		console.log('External extension requested dates for tabs:', message.tabIds);
+	const { action, tabIds } = message;
+
+	if (action === 'get-dates' && Array.isArray(tabIds) && tabIds.length > 0) {
+		console.log('External extension requested dates for tabs:', tabIds);
 
 		// Use the more robust getDatesFromTabs function.
 		// This respects Firefox's requirement to return true and use a promise chain.
 		// https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/onMessage#sending_an_asynchronous_response_using_sendresponse
-		getDatesFromTabs(message.tabIds)
+		getDatesFromTabs(tabIds)
 			.then(results => {
 				console.log('Sending response back:', { data: results });
 				sendResponse({ data: results });
