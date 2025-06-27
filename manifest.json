@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Heliotropium",
-	"version": "0.26.8",
+	"version": "0.26.9",
 	"description": "Check out the date of the page",
 	"icons": {
 		"48": "icons/icon_gray.png",
@@ -49,7 +49,7 @@
 	"action": {
 		"default_icon": "icons/icon_lightgray.png"
 	},
-	"permissions": ["tabs"],
+	"permissions": ["tabs", "scripting"],
 	"browser_specific_settings": {
 		"gecko": {
 			"id": "{a3d35f84-d68a-456c-8e85-55a25306f580}",

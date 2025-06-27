@@ -5,10 +5,10 @@
 /**
  * Checks if a tab is active, has a valid HTTP/HTTPS URL, and is fully loaded.
  *
- * @param {{ tabId: number }} options
+ * @param {{ tabId: number, checkActive?: boolean }} options
  * @returns {Promise<boolean>}
  */
-async function isTabReady({ tabId }) {
+async function isTabReady({ tabId, checkActive = true }) {
 	if (!tabId) return false;
 	console.log('Fetching tab', tabId);
 
@@ -17,7 +17,7 @@ async function isTabReady({ tabId }) {
 
 	const { active, url, status } = tab;
 
-	if (!active || !url?.startsWith('http') || status !== 'complete') {
+	if ((checkActive && !active) || !url?.startsWith('http') || status !== 'complete') {
 		console.log(`Tab ${tabId} is not ready. active: ${active}, url: ${url}, status: ${status}`);
 		return false;
 	}
@@ -128,6 +128,12 @@ async function handleGetDate(tabId, { url, title, dateString }) {
  */
 async function fetchTabDate(tabId, url) {
 	try {
+		// Ensure the content script is injected before sending a message.
+		await chrome.scripting.executeScript({
+			target: { tabId },
+			files: ['heliotropium_content.js'],
+		});
+
 		const response = await chrome.tabs.sendMessage(tabId, { action: 'get-date' });
 
 		if (response) {
@@ -237,7 +243,7 @@ async function getDatesFromTabs(tabIds) {
 	const tabDataPromises = tabIds.map(async (tabId) => {
 		try {
 			// Check readiness before attempting to load/fetch data
-			if (await isTabReady({ tabId })) {
+			if (await isTabReady({ tabId, checkActive: false })) {
 				return await loadTabData(tabId);
 			}
 			else {
