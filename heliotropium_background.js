@@ -187,19 +187,25 @@ async function loadTabData(tabId) {
  * @param {number} tabId
  */
 async function handleTabEvent(tabId) {
-	if (!await isTabReady({ tabId })) {
-		// If tab is not ready, disable the action
-		await updateAction({ tabId });
-		return;
-	}
+	try {
+		if (!await isTabReady({ tabId })) {
+			// If tab is not ready, disable the action
+			await updateAction({ tabId });
+			return;
+		}
 
-	const data = await loadTabData(tabId);
+		const data = await loadTabData(tabId);
 
-	if (data) {
-		await handleGetDate(tabId, data);
+		if (data) {
+			await handleGetDate(tabId, data);
+		}
+		else {
+			// If loading data fails, disable the action
+			await updateAction({ tabId });
+		}
 	}
-	else {
-		// If loading data fails, disable the action
+	catch (error) {
+		console.error(`Error handling tab event for tab ${tabId}:`, error);
 		await updateAction({ tabId });
 	}
 }
