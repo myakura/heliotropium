@@ -221,7 +221,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 	}
 	// When a tab starts loading, we can disable the action to give immediate feedback.
 	else if (changeInfo.status === 'loading') {
-		await updateAction({ tabId, enabled: false });
+		await updateAction({ tabId });
 	}
 });
 
