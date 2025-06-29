@@ -18,7 +18,7 @@ async function isTabReady({ tabId, checkActive = true }) {
 	const { active, url, status } = tab;
 
 	if ((checkActive && !active) || !url?.startsWith('http') || status !== 'complete') {
-		console.log(`Tab ${tabId} is not ready. active: ${active}, url: ${url}, status: ${status}`);
+		console.log(`Tab ${tabId} is not ready.\nurl: ${url}\nstatus: ${status}\nactive: ${active}`);
 		return false;
 	}
 
@@ -60,15 +60,15 @@ async function updateAction({ tabId, enabled = false, badgeText = '', title = ''
  */
 function parseDate(dateString) {
 	const patterns = [
-		// matches YYYY-MM-DD-ish patterns
+		// matches "YYYY-MM-DD"-ish patterns
 		// e.g. "2001-01-01", "2001/1/1", "2001.01.01", "2001年1月1日"
 		/(?<year>\d{4})[-\/\.年](?<month>\d{1,2})[-\/\.月](?<day>\d{1,2})日?/,
 
-		// matches month-day-year patterns
+		// matches "month-day-year" patterns
 		// e.g. "March 19th, 1984", "Mar. 19, 1984", etc.
 		/(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6}\s+(?<day>\d{1,2})(st|nd|rd|th)?,?\s+(?<year>\d{4})/i,
 
-		// matches day-month-year patterns
+		// matches "day-month-year" patterns
 		// e.g. "19th March 1984", "19 Mar 1984"
 		/(?<day>\d{1,2})(st|nd|rd|th)?\s+(?<month>jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?[a-y]{0,6},?\s+(?<year>\d{4})/i
 	];
@@ -108,7 +108,8 @@ async function handleGetDate(tabId, { url, title, dateString }) {
 
 	const { year, month, day } = date;
 
-	// Prefers shorter M/D to fit in the badge, MMDD otherwise.
+	// Prefers shorter "M/D" string so that it fits in the badge; "MMDD" otherwise.
+	// e.g. "1/1" over "0101" but "1212" over "12/12".
 	const monthDay = `${Number(month)}/${Number(day)}`;
 	const badgeText = monthDay.length < 5 ? monthDay : monthDay.replace('/', '');
 
