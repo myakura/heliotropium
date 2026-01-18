@@ -1,61 +1,142 @@
 'use strict';
 
-// utility functions
+
+// ============================================================================
+// Model: Tab date data management
+// ============================================================================
 
 /**
- * Checks if a tab is active, has a valid HTTP/HTTPS URL, and is fully loaded.
- *
- * @param {{ tabId: number, checkActive?: boolean }} options
- * @returns {Promise<boolean>}
+ * @typedef {Object} TabDateInfo
+ * @property {number} tabId
+ * @property {string} url
+ * @property {string} title
+ * @property {string} dateString
+ * @property {{ year: string, month: string, day: string } | null} date
  */
-async function isTabReady({ tabId, checkActive = true }) {
-	if (!tabId) return false;
-	console.log('Fetching tab', tabId);
 
-	const tab = await chrome.tabs.get(tabId);
-	if (!tab) return false;
+/** @type {Map<number, TabDateInfo>} */
+const tabDateStore = new Map();
 
-	const { active, url, status } = tab;
-
-	if ((checkActive && !active) || !url?.startsWith('http') || status !== 'complete') {
-		console.log(`Tab ${tabId} is not ready.\nurl: ${url}\nstatus: ${status}\nactive: ${active}`);
-		return false;
-	}
-
-	return true;
+/**
+ * Gets the stored data for a tab.
+ * @param {number} tabId
+ * @returns {TabDateInfo | undefined}
+ */
+function getTabData(tabId) {
+	return tabDateStore.get(tabId);
 }
 
 /**
- * Updates the action button for a specific tab.
- *
- * @param {{ tabId: number, enabled?: boolean, badgeText?: string, title?: string }} options -
- * Object containing tab ID and optional properties:
- * - `enabled` (boolean): Whether to enable or disable the browser action.
- * - `badgeText` (string): The text to display on the badge.
- * - `title` (string): The title for the browser action tooltip.
+ * Sets the data for a tab and triggers UI update.
+ * @param {number} tabId
+ * @param {TabDateInfo} data
  */
-async function updateAction({ tabId, enabled = false, badgeText = '', title = '' }) {
-	const method = enabled ? 'enable' : 'disable';
-	const icon = enabled
-		? (typeof window !== 'undefined')
-			? (window.matchMedia('(prefers-color-scheme: light)').matches)
-				? 'icons/icon_black.png'
-				: 'icons/icon_white.png'
-			: 'icons/icon_gray.png'
-		: 'icons/icon_lightgray.png';
-	await chrome.action[method](tabId);
-	await chrome.action.setIcon({ tabId, path: icon });
+function setTabData(tabId, data) {
+	tabDateStore.set(tabId, data);
+	updateActionForTab(tabId);
+}
+
+/**
+ * Clears the data for a tab and triggers UI update.
+ * @param {number} tabId
+ */
+function clearTabData(tabId) {
+	tabDateStore.delete(tabId);
+	updateActionForTab(tabId);
+}
+
+// Clean up when tabs are closed
+chrome.tabs.onRemoved.addListener((tabId) => {
+	tabDateStore.delete(tabId);
+});
+
+
+// ============================================================================
+// View: Action button UI
+// ============================================================================
+
+/**
+ * Updates the action button based on stored tab data.
+ * @param {number} tabId
+ */
+async function updateActionForTab(tabId) {
+	const data = tabDateStore.get(tabId);
+
+	if (!data?.date) {
+		await setActionDisabled(tabId);
+		return;
+	}
+
+	const { year, month, day } = data.date;
+	const badgeText = formatBadgeText(month, day);
+	const title = `${year}-${month}-${day}`;
+
+	await setActionEnabled(tabId, badgeText, title);
+}
+
+/**
+ * Formats the badge text to fit in the limited space.
+ * @param {string} month
+ * @param {string} day
+ * @returns {string}
+ */
+function formatBadgeText(month, day) {
+	// Prefers shorter "M/D" string so that it fits in the badge; "MMDD" otherwise.
+	// e.g. "1/1" over "0101" but "1212" over "12/12".
+	const monthDay = `${Number(month)}/${Number(day)}`;
+	return monthDay.length < 5 ? monthDay : monthDay.replace('/', '');
+}
+
+/**
+ * Gets the appropriate icon path based on enabled state.
+ * @param {boolean} enabled
+ * @returns {string}
+ */
+function getIconPath(enabled) {
+	if (!enabled) return 'icons/icon_lightgray.png';
+
+	if (typeof window !== 'undefined') {
+		return window.matchMedia('(prefers-color-scheme: light)').matches
+			? 'icons/icon_black.png'
+			: 'icons/icon_white.png';
+	}
+	return 'icons/icon_gray.png';
+}
+
+/**
+ * Sets the action button to enabled state.
+ * @param {number} tabId
+ * @param {string} badgeText
+ * @param {string} title
+ */
+async function setActionEnabled(tabId, badgeText, title) {
+	await chrome.action.enable(tabId);
+	await chrome.action.setIcon({ tabId, path: getIconPath(true) });
 	await chrome.action.setBadgeText({ tabId, text: badgeText });
 	await chrome.action.setBadgeBackgroundColor({ tabId, color: '#36f' });
 	await chrome.action.setTitle({ tabId, title });
 }
 
-// extension specific functions
+/**
+ * Sets the action button to disabled state.
+ * @param {number} tabId
+ */
+async function setActionDisabled(tabId) {
+	await chrome.action.disable(tabId);
+	await chrome.action.setIcon({ tabId, path: getIconPath(false) });
+	await chrome.action.setBadgeText({ tabId, text: '' });
+	await chrome.action.setTitle({ tabId, title: '' });
+}
+
+
+// ============================================================================
+// Date parsing utilities
+// ============================================================================
 
 /**
  * Parses a date string into an object with { year, month, day }.
  *
- * @param {string} dateString - The date string to parse.
+ * @param {string} dateString
  * @returns {{ year: string, month: string, day: string } | null}
  */
 function parseDate(dateString) {
@@ -80,7 +161,7 @@ function parseDate(dateString) {
 
 	for (const pattern of patterns) {
 		const match = pattern.exec(dateString);
-		if (match && match.groups) {
+		if (match?.groups) {
 			const { year, month, day } = match.groups;
 			return {
 				year,
@@ -93,43 +174,55 @@ function parseDate(dateString) {
 	return null;
 }
 
+
+// ============================================================================
+// Tab readiness check
+// ============================================================================
+
 /**
- * Handles receiving a date from the content script or fetched data.
+ * Checks if a tab is ready for date extraction.
  * @param {number} tabId
- * @param {{url: string, title: string, dateString: string}} data
+ * @param {boolean} [checkActive=true]
+ * @returns {Promise<boolean>}
  */
-async function handleGetDate(tabId, { url, title, dateString }) {
-	console.log('Handling date for tab', tabId, url, title, dateString);
-	if (!dateString) return await updateAction({ tabId });
+async function isTabReady(tabId, checkActive = true) {
+	if (!tabId) return false;
 
-	const date = parseDate(dateString);
-	console.log('Parsed date:', date);
-	if (!date) return await updateAction({ tabId });
+	try {
+		const tab = await chrome.tabs.get(tabId);
+		if (!tab) return false;
 
-	const { year, month, day } = date;
+		const { active, url, status } = tab;
+		const isReady = (!checkActive || active) && url?.startsWith('http') && status === 'complete';
 
-	// Prefers shorter "M/D" string so that it fits in the badge; "MMDD" otherwise.
-	// e.g. "1/1" over "0101" but "1212" over "12/12".
-	const monthDay = `${Number(month)}/${Number(day)}`;
-	const badgeText = monthDay.length < 5 ? monthDay : monthDay.replace('/', '');
+		if (!isReady) {
+			console.log(`Tab ${tabId} is not ready.\nurl: ${url}\nstatus: ${status}\nactive: ${active}`);
+		}
 
-	await updateAction({
-		tabId,
-		enabled: true,
-		badgeText,
-		title: `${year}-${month}-${day}`,
-	});
+		return isReady;
+	}
+	catch (error) {
+		console.log(`Error checking tab ${tabId}:`, error);
+		return false;
+	}
 }
 
+
+// ============================================================================
+// Data fetching from content script
+// ============================================================================
+
 /**
- * Fetches a fresh date from the content script.
+ * Fetches date information from a tab's content script.
  * @param {number} tabId
- * @param {string} url
- * @returns {Promise<{ tabId: number, url: string, title: string, dateString: string, date: object|null } | null>}
+ * @returns {Promise<TabDateInfo | null>}
  */
-async function fetchTabDate(tabId, url) {
+async function fetchDateFromTab(tabId) {
 	try {
-		// Ensure the content script is injected before sending a message.
+		const tab = await chrome.tabs.get(tabId);
+		if (!tab?.url) return null;
+
+		// Inject content script
 		await chrome.scripting.executeScript({
 			target: { tabId },
 			files: ['heliotropium_content.js'],
@@ -137,96 +230,118 @@ async function fetchTabDate(tabId, url) {
 
 		const response = await chrome.tabs.sendMessage(tabId, { action: 'get-date' });
 
-		if (response) {
+		if (response?.dateString) {
 			console.log('Received response from tab', tabId, response);
-			const { title, dateString } = response;
-			const date = parseDate(dateString);
-
-			return { tabId, url, title, dateString, date };
+			return {
+				tabId,
+				url: tab.url,
+				title: response.title || tab.title || 'Untitled',
+				dateString: response.dateString,
+				date: parseDate(response.dateString),
+			};
 		}
 	}
 	catch (error) {
-		console.log(`Error fetching date from content script for tab ${tabId}:`, error);
+		console.log(`Error fetching date from tab ${tabId}:`, error);
 	}
 
 	return null;
 }
 
 /**
- * Loads tab data by fetching a fresh date from the content script.
+ * Creates a default (empty) TabDateInfo for a tab.
  * @param {number} tabId
- * @returns {Promise<{ tabId: number, url: string, title: string, dateString: string, date: object|null }>}
+ * @returns {Promise<TabDateInfo>}
  */
-async function loadTabData(tabId) {
-	const tab = await chrome.tabs.get(tabId);
+async function createEmptyTabData(tabId) {
+	let url = 'Unknown URL';
+	let title = 'Untitled';
 
-	if (!tab || !tab.url) {
-		return {
-			tabId,
-			url: 'Unknown URL',
-			title: 'Untitled',
-			dateString: 'N/A',
-			date: null,
-		};
+	try {
+		const tab = await chrome.tabs.get(tabId);
+		url = tab?.url || url;
+		title = tab?.title || title;
 	}
+	catch { /* ignore */ }
 
-	// Always fetch fresh data
-	return (
-		await fetchTabDate(tabId, tab.url) || {
-			tabId,
-			url: tab.url,
-			title: tab.title || 'Untitled',
-			dateString: 'N/A',
-			date: null,
-		}
-	);
+	return { tabId, url, title, dateString: 'N/A', date: null };
+}
+
+
+// ============================================================================
+// Controller: Event handling and data flow
+// ============================================================================
+
+/**
+ * Loads and stores date data for a tab.
+ * @param {number} tabId
+ */
+async function loadAndStoreTabData(tabId) {
+	const data = await fetchDateFromTab(tabId);
+
+	if (data) {
+		setTabData(tabId, data);
+	}
+	else {
+		clearTabData(tabId);
+	}
 }
 
 /**
- * Processes a tab event (activation/update) by ensuring its date is loaded and action updated.
+ * Handles tab activation and update events.
  * @param {number} tabId
  */
 async function handleTabEvent(tabId) {
 	try {
-		if (!await isTabReady({ tabId })) {
-			// If tab is not ready, disable the action
-			await updateAction({ tabId });
+		if (!await isTabReady(tabId)) {
+			clearTabData(tabId);
 			return;
 		}
 
-		const data = await loadTabData(tabId);
-
-		if (data) {
-			await handleGetDate(tabId, data);
-		}
-		else {
-			// If loading data fails, disable the action
-			await updateAction({ tabId });
-		}
+		await loadAndStoreTabData(tabId);
 	}
 	catch (error) {
 		console.error(`Error handling tab event for tab ${tabId}:`, error);
-		await updateAction({ tabId });
+		clearTabData(tabId);
 	}
 }
 
-// Event listeners for tab events
+/**
+ * Handles date data received directly from content script message.
+ * @param {number} tabId
+ * @param {string} url
+ * @param {string} title
+ * @param {string} dateString
+ */
+function handleContentScriptMessage(tabId, url, title, dateString) {
+	if (!dateString) {
+		clearTabData(tabId);
+		return;
+	}
+
+	const date = parseDate(dateString);
+	setTabData(tabId, { tabId, url, title, dateString, date });
+}
+
+
+// ============================================================================
+// Event listeners
+// ============================================================================
+
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 	await handleTabEvent(tabId);
 });
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-	// We only need to act once the page is fully loaded and ready.
+
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
 	if (changeInfo.status === 'complete') {
 		await handleTabEvent(tabId);
 	}
-	// When a tab starts loading, we can disable the action to give immediate feedback.
 	else if (changeInfo.status === 'loading') {
-		await updateAction({ tabId });
+		clearTabData(tabId);
 	}
 });
 
-// Event listener for messages from content scripts.
-chrome.runtime.onMessage.addListener(async (message, sender) => {
+chrome.runtime.onMessage.addListener((message, sender) => {
 	if (!sender.tab) {
 		console.log('No tab information in sender.');
 		return;
@@ -235,54 +350,36 @@ chrome.runtime.onMessage.addListener(async (message, sender) => {
 	const { id: tabId, url, title } = sender.tab;
 	console.log(`Received message from tab ${tabId}:`, message);
 
-	// Directly handle the received data without caching
-	await handleGetDate(tabId, { ...message, title: title || 'Untitled', url });
+	handleContentScriptMessage(tabId, url, title || 'Untitled', message.dateString);
 });
 
-// Handling messages from external extensions
+
+// ============================================================================
+// External extension API
+// ============================================================================
 
 /**
- * Retrieves dates for multiple tabs by fetching fresh data for each.
- * @param {Array<number>} tabIds
- * @returns {Promise<Array<{ tabId: number, url: string, title: string, dateString: string, date: object|null }>>}
+ * Retrieves dates for multiple tabs.
+ * @param {number[]} tabIds
+ * @returns {Promise<TabDateInfo[]>}
  */
 async function getDatesFromTabs(tabIds) {
-	const tabDataPromises = tabIds.map(async (tabId) => {
-		try {
-			// Check readiness before attempting to load/fetch data
-			if (await isTabReady({ tabId, checkActive: false })) {
-				return await loadTabData(tabId);
+	const results = await Promise.all(
+		tabIds.map(async (tabId) => {
+			try {
+				if (await isTabReady(tabId, false)) {
+					const data = await fetchDateFromTab(tabId);
+					if (data) return data;
+				}
+				return await createEmptyTabData(tabId);
 			}
-			else {
-				// If tab is not ready, return a default structure
-				const tab = await chrome.tabs.get(tabId).catch(() => null); // Get tab info if possible
-				return {
-					tabId,
-					url: tab?.url || 'Unknown URL',
-					title: tab?.title || 'Untitled',
-					dateString: 'N/A',
-					date: null,
-				};
+			catch (error) {
+				console.log(`Error processing tab ${tabId}:`, error);
+				return await createEmptyTabData(tabId);
 			}
-		}
-		catch (error) {
-			console.log(`Error processing tab ${tabId}:`, error);
-			// Return a default structure on error
-			const tab = await chrome.tabs.get(tabId).catch(() => null);
-			return {
-				tabId,
-				url: tab?.url || 'Unknown URL',
-				title: tab?.title || 'Untitled',
-				dateString: 'N/A',
-				date: null,
-			};
-		}
-	});
+		})
+	);
 
-	// Use Promise.all directly as getDatesFromTabs is async
-	const results = await Promise.all(tabDataPromises);
-
-	// Filter out nulls just in case, though the logic above aims to always return an object
 	return results.filter(Boolean);
 }
 
@@ -296,11 +393,11 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
 		// This respects Firefox's requirement to return true and use a promise chain.
 		// https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/onMessage#sending_an_asynchronous_response_using_sendresponse
 		getDatesFromTabs(tabIds)
-			.then(results => {
+			.then((results) => {
 				console.log('Sending response back:', { data: results });
 				sendResponse({ data: results });
 			})
-			.catch(error => {
+			.catch((error) => {
 				console.error('Error processing external request:', error);
 				sendResponse({ error: 'Internal processing error' });
 			});
@@ -309,7 +406,5 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
 		return true;
 	}
 
-	// Handle invalid requests immediately.
 	sendResponse({ error: 'Invalid request: missing or invalid tabIds.' });
-	// No "return true" here as the response is synchronous.
 });
