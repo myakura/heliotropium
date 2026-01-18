@@ -2,8 +2,16 @@
 
 
 // ============================================================================
-// Model: Tab date data management
+// Model: URL-based date cache
 // ============================================================================
+
+/**
+ * @typedef {Object} DateCacheEntry
+ * @property {string} url
+ * @property {string} title
+ * @property {string} dateString
+ * @property {{ year: string, month: string, day: string } | null} date
+ */
 
 /**
  * @typedef {Object} TabDateInfo
@@ -14,40 +22,76 @@
  * @property {{ year: string, month: string, day: string } | null} date
  */
 
-/** @type {Map<number, TabDateInfo>} */
-const tabDateStore = new Map();
+/** @type {Map<string, DateCacheEntry>} URL → date info cache */
+const urlDateCache = new Map();
+
+/** @type {Map<number, string>} tabId → URL mapping */
+const tabUrlMap = new Map();
 
 /**
- * Gets the stored data for a tab.
- * @param {number} tabId
- * @returns {TabDateInfo | undefined}
+ * Normalizes a URL for cache key.
+ * Keeps hash fragment as some pages have different dates per hash.
+ * @param {string} url
+ * @returns {string}
  */
-function getTabData(tabId) {
-	return tabDateStore.get(tabId);
+function normalizeUrl(url) {
+	// for now, just return the URL as-is.
+	// future normalization (e.g. removing UTM parameters) can be added here.
+	return url;
 }
 
 /**
- * Sets the data for a tab and triggers UI update.
- * @param {number} tabId
- * @param {TabDateInfo} data
+ * Gets cached date data for a URL.
+ * @param {string} url
+ * @returns {DateCacheEntry | undefined}
  */
-function setTabData(tabId, data) {
-	tabDateStore.set(tabId, data);
+function getCachedData(url) {
+	return urlDateCache.get(normalizeUrl(url));
+}
+
+/**
+ * Sets date data in cache and updates UI for the tab.
+ * @param {string} url
+ * @param {DateCacheEntry} data
+ */
+function setCachedData(url, data) {
+	urlDateCache.set(normalizeUrl(url), data);
+}
+
+/**
+ * Gets the stored data for a tab (from cache via URL).
+ * @param {number} tabId
+ * @returns {DateCacheEntry | undefined}
+ */
+function getTabData(tabId) {
+	const url = tabUrlMap.get(tabId);
+	return url ? getCachedData(url) : undefined;
+}
+
+/**
+ * Associates a tab with a URL and triggers UI update.
+ * @param {number} tabId
+ * @param {string} url
+ * @param {DateCacheEntry} data
+ */
+function setTabData(tabId, url, data) {
+	tabUrlMap.set(tabId, normalizeUrl(url));
+	setCachedData(url, data);
 	updateActionForTab(tabId);
 }
 
 /**
- * Clears the data for a tab and triggers UI update.
+ * Clears the tab-URL association and triggers UI update.
  * @param {number} tabId
  */
 function clearTabData(tabId) {
-	tabDateStore.delete(tabId);
+	tabUrlMap.delete(tabId);
 	updateActionForTab(tabId);
 }
 
-// Clean up when tabs are closed
+// Clean up tab mapping when tabs are closed (cache remains for future use)
 chrome.tabs.onRemoved.addListener((tabId) => {
-	tabDateStore.delete(tabId);
+	tabUrlMap.delete(tabId);
 });
 
 
@@ -60,7 +104,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
  * @param {number} tabId
  */
 async function updateActionForTab(tabId) {
-	const data = tabDateStore.get(tabId);
+	const data = getTabData(tabId);
 
 	if (!data?.date) {
 		await setActionDisabled(tabId);
@@ -215,7 +259,7 @@ async function isTabReady(tabId, checkActive = true) {
 /**
  * Fetches date information from a tab's content script.
  * @param {number} tabId
- * @returns {Promise<TabDateInfo | null>}
+ * @returns {Promise<DateCacheEntry | null>}
  */
 async function fetchDateFromTab(tabId) {
 	try {
@@ -233,7 +277,6 @@ async function fetchDateFromTab(tabId) {
 		if (response?.dateString) {
 			console.log('Received response from tab', tabId, response);
 			return {
-				tabId,
 				url: tab.url,
 				title: response.title || tab.title || 'Untitled',
 				dateString: response.dateString,
@@ -274,13 +317,32 @@ async function createEmptyTabData(tabId) {
 
 /**
  * Loads and stores date data for a tab.
+ * Uses cache if available, otherwise fetches from content script.
  * @param {number} tabId
  */
 async function loadAndStoreTabData(tabId) {
+	const tab = await chrome.tabs.get(tabId);
+	if (!tab?.url) {
+		clearTabData(tabId);
+		return;
+	}
+
+	const url = tab.url;
+
+	// Check cache first
+	const cached = getCachedData(url);
+	if (cached) {
+		console.log(`Cache hit for ${url}`);
+		tabUrlMap.set(tabId, normalizeUrl(url));
+		updateActionForTab(tabId);
+		return;
+	}
+
+	// Fetch from content script
 	const data = await fetchDateFromTab(tabId);
 
 	if (data) {
-		setTabData(tabId, data);
+		setTabData(tabId, url, data);
 	}
 	else {
 		clearTabData(tabId);
@@ -320,7 +382,8 @@ function handleContentScriptMessage(tabId, url, title, dateString) {
 	}
 
 	const date = parseDate(dateString);
-	setTabData(tabId, { tabId, url, title, dateString, date });
+	const data = { url, title, dateString, date };
+	setTabData(tabId, url, data);
 }
 
 
@@ -359,7 +422,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 // ============================================================================
 
 /**
- * Retrieves dates for multiple tabs.
+ * Retrieves dates for multiple tabs, using cache when available.
  * @param {number[]} tabIds
  * @returns {Promise<TabDateInfo[]>}
  */
@@ -367,9 +430,25 @@ async function getDatesFromTabs(tabIds) {
 	const results = await Promise.all(
 		tabIds.map(async (tabId) => {
 			try {
+				const tab = await chrome.tabs.get(tabId);
+				if (!tab?.url) {
+					return await createEmptyTabData(tabId);
+				}
+
+				// Check cache first
+				const cached = getCachedData(tab.url);
+				if (cached) {
+					console.log(`Cache hit for tab ${tabId}: ${tab.url}`);
+					return { tabId, ...cached };
+				}
+
+				// Fetch from content script
 				if (await isTabReady(tabId, false)) {
 					const data = await fetchDateFromTab(tabId);
-					if (data) return data;
+					if (data) {
+						setCachedData(tab.url, data);
+						return { tabId, ...data };
+					}
 				}
 				return await createEmptyTabData(tabId);
 			}
