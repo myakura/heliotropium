@@ -14,12 +14,8 @@
  */
 
 /**
- * @typedef {Object} TabDateInfo
- * @property {number} tabId
- * @property {string} url
- * @property {string} title
- * @property {string} dateString
- * @property {{ year: string, month: string, day: string } | null} date
+ * External API response type (adds tabId to DateCacheEntry).
+ * @typedef {DateCacheEntry & { tabId: number }} TabDateInfo
  */
 
 /** @type {Map<string, DateCacheEntry>} URL → date info cache */
@@ -240,13 +236,13 @@ async function isTabReady(tabId, checkActive = true) {
 		const isReady = (!checkActive || active) && url?.startsWith('http') && status === 'complete';
 
 		if (!isReady) {
-			console.log(`Tab ${tabId} is not ready.\nurl: ${url}\nstatus: ${status}\nactive: ${active}`);
+			console.log('Tab', tabId, 'is not ready.\n', { url, status, active });
 		}
 
 		return isReady;
 	}
 	catch (error) {
-		console.log(`Error checking tab ${tabId}:`, error);
+		console.log('Error checking tab', tabId, '\n', error);
 		return false;
 	}
 }
@@ -275,7 +271,7 @@ async function fetchDateFromTab(tabId) {
 		const response = await chrome.tabs.sendMessage(tabId, { action: 'get-date' });
 
 		if (response?.dateString) {
-			console.log('Received response from tab', tabId, response);
+			console.log('Received response from tab', tabId, '\n', response);
 			return {
 				url: tab.url,
 				title: response.title || tab.title || 'Untitled',
@@ -285,7 +281,7 @@ async function fetchDateFromTab(tabId) {
 		}
 	}
 	catch (error) {
-		console.log(`Error fetching date from tab ${tabId}:`, error);
+		console.log('Error fetching date from tab', tabId, '\n', error);
 	}
 
 	return null;
@@ -332,7 +328,7 @@ async function loadAndStoreTabData(tabId) {
 	// Check cache first
 	const cached = getCachedData(url);
 	if (cached) {
-		console.log(`Cache hit for ${url}`);
+		console.log('Cache hit for', url, '\n', cached);
 		tabUrlMap.set(tabId, normalizeUrl(url));
 		updateActionForTab(tabId);
 		return;
@@ -363,7 +359,7 @@ async function handleTabEvent(tabId) {
 		await loadAndStoreTabData(tabId);
 	}
 	catch (error) {
-		console.error(`Error handling tab event for tab ${tabId}:`, error);
+		console.error('Error handling tab event for tab', tabId, '\n', error);
 		clearTabData(tabId);
 	}
 }
@@ -411,7 +407,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 	}
 
 	const { id: tabId, url, title } = sender.tab;
-	console.log(`Received message from tab ${tabId}:`, message);
+	console.log('Received message from tab', tabId, url, '\n', message);
 
 	handleContentScriptMessage(tabId, url, title || 'Untitled', message.dateString);
 });
@@ -438,7 +434,7 @@ async function getDatesFromTabs(tabIds) {
 				// Check cache first
 				const cached = getCachedData(tab.url);
 				if (cached) {
-					console.log(`Cache hit for tab ${tabId}: ${tab.url}`);
+					console.log('Cache hit for tab', tabId, { url: tab.url });
 					return { tabId, ...cached };
 				}
 
@@ -453,7 +449,7 @@ async function getDatesFromTabs(tabIds) {
 				return await createEmptyTabData(tabId);
 			}
 			catch (error) {
-				console.log(`Error processing tab ${tabId}:`, error);
+				console.log('Error processing tab', tabId, { error });
 				return await createEmptyTabData(tabId);
 			}
 		})
