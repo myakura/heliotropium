@@ -51,6 +51,7 @@ function getCachedData(url) {
  * @param {DateCacheEntry} data
  */
 function setCachedData(url, data) {
+	console.log('Caching data for', url, '\n', data);
 	urlDateCache.set(normalizeUrl(url), data);
 }
 
